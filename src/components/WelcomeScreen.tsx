@@ -15,8 +15,12 @@ export function WelcomeScreen({ onEnter }: Props) {
   return (
     <div className="fixed inset-0 z-50 select-none overflow-hidden">
       <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: 'url(/background.jpg)' }}
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `url(${import.meta.env.BASE_URL}background.jpg)`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
       />
       <div className="absolute inset-0 bg-gradient-to-r from-black/5 via-black/30 to-black/75" />
 
@@ -29,7 +33,7 @@ export function WelcomeScreen({ onEnter }: Props) {
         }}
       >
         <img
-          src="/arena.svg"
+          src={`${import.meta.env.BASE_URL}arena.svg`}
           alt="ARena"
           draggable={false}
           className="mb-12 h-10 w-auto object-contain object-left"
