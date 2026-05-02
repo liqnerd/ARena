@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(curl -sf http://localhost:5173/ -o /dev/null)",
+      "Bash(curl -sf http://localhost:5173/src/main.tsx -o /tmp/main.out)",
+      "Read(//tmp/**)",
+      "Bash(curl -sf \"http://localhost:5173/src/App.tsx\" -o /dev/null)",
+      "Bash(curl -sf \"http://localhost:5173/src/components/Viewport.tsx\" -o /dev/null)",
+      "Bash(curl -sf \"http://localhost:5173/src/components/CanvasShell3D.tsx\" -o /dev/null)",
+      "Bash(curl -sf \"http://localhost:5173/src/store/editor.ts\" -o /dev/null)",
+      "Bash(kill bf5tjzen4 *)",
+      "Bash(taskkill //IM node.exe //F)",
+      "Bash(curl -sf http://localhost:5174/ -o /dev/null)",
+      "Bash(netstat -ano)",
+      "Skill(update-config)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'Initial commit *)"
+    ]
+  }
+}
