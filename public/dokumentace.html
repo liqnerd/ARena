@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARena — Technická dokumentace</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --pink: #E6007E;
+      --pink-light: #fce7f3;
+      --pink-mid: #fbcfe8;
+      --text: #1a1a2e;
+      --text-muted: #6b7280;
+      --border: #e5e7eb;
+      --bg: #ffffff;
+      --bg-code: #f8fafc;
+      --bg-aside: #fdf2f8;
+      --radius: 8px;
+      --font: 'Georgia', 'Times New Roman', serif;
+      --font-sans: 'Segoe UI', system-ui, sans-serif;
+      --font-mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      font-size: 16px;
+      line-height: 1.75;
+      color: var(--text);
+      background: var(--bg);
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 2rem 6rem;
+    }
+
+    /* ── TITULNÍ STRANA ── */
+    .cover {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 2rem;
+      border-bottom: 3px solid var(--pink);
+      margin-bottom: 4rem;
+    }
+    .cover-logo {
+      width: 80px;
+      height: 80px;
+      background: var(--pink);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: white;
+      font-family: var(--font-sans);
+      margin-bottom: 2.5rem;
+      letter-spacing: -2px;
+    }
+    .cover-subtitle {
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--pink);
+      margin-bottom: 1rem;
+    }
+    .cover h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+    .cover-desc {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 480px;
+      margin: 0 auto 3rem;
+      line-height: 1.6;
+    }
+    .cover-meta {
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 2;
+      border-top: 1px solid var(--border);
+      padding-top: 2rem;
+      width: 100%;
+      max-width: 400px;
+    }
+    .cover-meta strong { color: var(--text); }
+
+    /* ── OBSAH ── */
+    .toc {
+      background: var(--bg-aside);
+      border: 1px solid var(--pink-mid);
+      border-radius: var(--radius);
+      padding: 2rem 2.5rem;
+      margin-bottom: 4rem;
+    }
+    .toc h2 {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--pink);
+      margin-bottom: 1.2rem;
+    }
+    .toc ol {
+      list-style: none;
+      counter-reset: toc-counter;
+    }
+    .toc > ol > li {
+      counter-increment: toc-counter;
+      margin-bottom: 0.4rem;
+    }
+    .toc a {
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      text-decoration: none;
+      color: var(--text);
+      transition: color 0.15s;
+    }
+    .toc a:hover { color: var(--pink); }
+    .toc .toc-sub {
+      padding-left: 1.5rem;
+      margin-top: 0.2rem;
+    }
+    .toc .toc-sub li {
+      margin-bottom: 0.2rem;
+    }
+    .toc .toc-sub a {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    /* ── NADPISY ── */
+    h1, h2, h3, h4 {
+      font-family: var(--font-sans);
+      line-height: 1.25;
+      color: var(--text);
+    }
+
+    .chapter {
+      margin-bottom: 5rem;
+    }
+
+    .chapter-number {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--pink);
+      margin-bottom: 0.5rem;
+    }
+
+    h2.chapter-title {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 0.75rem;
+      margin-bottom: 2rem;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-top: 2.5rem;
+      margin-bottom: 0.75rem;
+      color: var(--text);
+    }
+
+    h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: var(--text-muted);
+    }
+
+    /* ── TEXT ── */
+    p { margin-bottom: 1rem; }
+
+    a { color: var(--pink); }
+
+    strong { font-weight: 700; }
+
+    em { font-style: italic; }
+
+    ul, ol {
+      padding-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    li { margin-bottom: 0.3rem; }
+
+    /* ── KÓDOVÉ BLOKY ── */
+    pre {
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      overflow-x: auto;
+      margin-bottom: 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      line-height: 1.6;
+    }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.1em 0.35em;
+    }
+
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: inherit;
+    }
+
+    /* ── TABULKY ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+      font-family: var(--font-sans);
+      font-size: 0.875rem;
+    }
+    th {
+      background: var(--bg-aside);
+      font-weight: 600;
+      text-align: left;
+      padding: 0.6rem 0.85rem;
+      border-bottom: 2px solid var(--pink-mid);
+      color: var(--text);
+    }
+    td {
+      padding: 0.55rem 0.85rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafafa; }
+
+    /* ── CALLOUT BOXY ── */
+    .callout {
+      border-left: 4px solid var(--pink);
+      background: var(--bg-aside);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+    }
+    .callout-label {
+      font-weight: 700;
+      color: var(--pink);
+      margin-bottom: 0.25rem;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .callout-info {
+      border-left-color: #3b82f6;
+      background: #eff6ff;
+    }
+    .callout-info .callout-label { color: #2563eb; }
+
+    .callout-warning {
+      border-left-color: #f59e0b;
+      background: #fffbeb;
+    }
+    .callout-warning .callout-label { color: #d97706; }
+
+    /* ── MATH FORMULE ── */
+    .math-block {
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem 2rem;
+      margin: 1.5rem 0;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      line-height: 2.2;
+    }
+    .math-block .formula {
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .math-block .formula-var { color: #7c3aed; font-style: italic; }
+    .math-block .formula-const { color: #0369a1; }
+    .math-block .formula-comment {
+      color: var(--text-muted);
+      font-style: italic;
+      font-size: 0.8rem;
+      margin-left: auto;
+    }
+
+    /* ── DIAGRAMY ── */
+    .diagram-wrap {
+      background: #fafafa;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      margin: 2rem 0;
+      overflow-x: auto;
+      text-align: center;
+    }
+    .diagram-caption {
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 0.75rem;
+    }
+
+    /* ── TECH BADGE ── */
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    .tech-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      background: var(--bg);
+    }
+    .tech-card-name {
+      font-family: var(--font-sans);
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+    .tech-card-version {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--pink);
+      margin-bottom: 0.4rem;
+    }
+    .tech-card-desc {
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* ── SEPARÁTOR ── */
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 3rem 0;
+    }
+
+    /* ── PRINT ── */
+    @media print {
+      body { max-width: 100%; padding: 0 1cm; font-size: 11pt; }
+      .cover { min-height: auto; page-break-after: always; }
+      .chapter { page-break-inside: avoid; }
+      h2.chapter-title { page-break-before: always; }
+      pre, .diagram-wrap { page-break-inside: avoid; }
+      a { color: inherit; }
+    }
+
+    /* Mermaid override */
+    .mermaid { display: flex; justify-content: center; }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     TITULNÍ STRANA
+════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-logo">A</div>
+  <div class="cover-subtitle">Technická dokumentace · Diplomová práce</div>
+  <h1>ARena Editor</h1>
+  <p class="cover-desc">
+    Prohlížečový editor pro návrh a kompozici 360° cylindrických projekčních scén
+    s podporou 2D editace, 3D náhledu a interaktivních hotspotů.
+  </p>
+  <div class="cover-meta">
+    <div><strong>Typ projektu:</strong> Single-page webová aplikace (SPA)</div>
+    <div><strong>Primární jazyk:</strong> TypeScript</div>
+    <div><strong>Architektura:</strong> React + Konva + React Three Fiber</div>
+    <div><strong>Verze schématu:</strong> 1.0.0</div>
+    <div><strong>Rok:</strong> 2026</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     OBSAH
+════════════════════════════════════════════ -->
+<div class="toc">
+  <h2>Obsah</h2>
+  <ol>
+    <li><a href="#uvod">1. Úvod</a>
+      <ul class="toc-sub">
+        <li><a href="#motivace">1.1 Motivace a cíle projektu</a></li>
+        <li><a href="#existujici">1.2 Existující řešení a jejich omezení</a></li>
+      </ul>
+    </li>
+    <li><a href="#architektura">2. Architektura systému</a>
+      <ul class="toc-sub">
+        <li><a href="#prehled">2.1 Přehled architektury</a></li>
+        <li><a href="#tech-stack">2.2 Technologický stack</a></li>
+        <li><a href="#komponenty-diagram">2.3 Diagram komponent</a></li>
+      </ul>
+    </li>
+    <li><a href="#datovy-model">3. Datový model</a>
+      <ul class="toc-sub">
+        <li><a href="#projekt">3.1 Struktura projektu</a></li>
+        <li><a href="#scena">3.2 Scény a objekty</a></li>
+        <li><a href="#typy-objektu">3.3 Typy objektů</a></li>
+        <li><a href="#interakce">3.4 Interakce</a></li>
+        <li><a href="#er-diagram">3.5 ER diagram datového modelu</a></li>
+      </ul>
+    </li>
+    <li><a href="#implementace">4. Implementace klíčových subsystémů</a>
+      <ul class="toc-sub">
+        <li><a href="#canvas-2d">4.1 2D editor — Konva</a></li>
+        <li><a href="#zoom-pan">4.2 Souřadnicový systém a zoom/pan transformace</a></li>
+        <li><a href="#safe-zone">4.3 Matematický model — výpočet bezpečné zóny</a></li>
+        <li><a href="#cylind-3d">4.4 3D cylindrický náhled — React Three Fiber</a></li>
+        <li><a href="#render-pipeline">4.5 Render pipeline — texture z 2D canvasu</a></li>
+        <li><a href="#state-management">4.6 Správa stavu — Zustand</a></li>
+        <li><a href="#persistence">4.7 Perzistence dat a autosave</a></li>
+        <li><a href="#export">4.8 Export</a></li>
+      </ul>
+    </li>
+    <li><a href="#ui">5. Uživatelské rozhraní</a>
+      <ul class="toc-sub">
+        <li><a href="#layout">5.1 Rozložení aplikace</a></li>
+        <li><a href="#komponenty">5.2 Popis komponent</a></li>
+      </ul>
+    </li>
+    <li><a href="#toky">6. Sekvenční diagramy</a></li>
+    <li><a href="#zaver">7. Závěr a možná rozšíření</a></li>
+  </ol>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     1. ÚVOD
+════════════════════════════════════════════ -->
+<section class="chapter" id="uvod">
+  <div class="chapter-number">Kapitola 1</div>
+  <h2 class="chapter-title">Úvod</h2>
+
+  <h3 id="motivace">1.1 Motivace a cíle projektu</h3>
+  <p>
+    Cylindrické projekce — velkoformátové scény obtočené kolem diváka — se stávají stále rozšířenějším
+    médiem pro prezentace, výstavy, planetária a imerzivní instalace. Příprava obsahu pro tyto scény
+    je však složitá: běžné grafické editory pracují s plochou plochou a neumožňují designérovi
+    přirozeně vizualizovat, jak bude výsledek vypadat po rozvinutí do cylindru.
+  </p>
+  <p>
+    <strong>ARena</strong> je editorský nástroj navržený přímo pro tento use-case. Umožňuje
+    designérovi pracovat na rozvinutém povrchu cylindru v 2D pohledu (přesná kompozice, vrstvení,
+    pozicování) a zároveň kdykoliv přepnout do 3D náhledu pro kontrolu výsledku z pohledu diváka
+    uvnitř cylindru.
+  </p>
+
+  <p><strong>Hlavní cíle projektu:</strong></p>
+  <ul>
+    <li>Poskytnout intuitivní 2D canvas editor pro tvorbu obsahu 360° cylindrických scén</li>
+    <li>Vizualizovat výsledek v reálném čase jako 3D cylindr</li>
+    <li>Vypočítat a zobrazit <em>bezpečnou zónu</em> — oblast viditelnou pro diváka dané výšky</li>
+    <li>Umožnit tvorbu interaktivních hotspotů pro navigaci mezi scénami</li>
+    <li>Pracovat plně v prohlížeči, bez nutnosti serveru (local-first přístup)</li>
+    <li>Exportovat scény do formátů vhodných pro nasazení (ZIP, JSON, PNG)</li>
+  </ul>
+
+  <h3 id="existujici">1.2 Existující řešení a jejich omezení</h3>
+  <p>
+    Pro tvorbu obsahu pro cylindrické projekce neexistuje žádný standardní specializovaný nástroj.
+    Designéři jsou odkázáni na obecné grafické editory s následujícími omezeními:
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Nástroj</th>
+        <th>Omezení pro cylindrické projekce</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Adobe Photoshop / Illustrator</strong></td>
+        <td>Žádná podpora cylindrické projekce, žádný 3D náhled, žádná safe zone</td>
+      </tr>
+      <tr>
+        <td><strong>Figma</strong></td>
+        <td>Plochý editor, plugin ekosystém omezený, žádná podpora výpočtu fyzikálních parametrů cylindru</td>
+      </tr>
+      <tr>
+        <td><strong>Blender / Cinema 4D</strong></td>
+        <td>3D nástroje vhodné pro finální rendering, ne pro kompozici a vrstvení 2D obsahu</td>
+      </tr>
+      <tr>
+        <td><strong>360° video editory</strong></td>
+        <td>Zaměřené na sférické projekce (equirectangular), nikoliv cylindrické</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <div class="callout-label">Klíčový insight</div>
+    ARena vyplňuje mezeru na trhu jako první webový editor specializovaný na cylindrické projekce
+    s fyzikálně korektním výpočtem bezpečné zóny a real-time 3D náhledem.
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+     2. ARCHITEKTURA
+════════════════════════════════════════════ -->
+<section class="chapter" id="architektura">
+  <div class="chapter-number">Kapitola 2</div>
+  <h2 class="chapter-title">Architektura systému</h2>
+
+  <h3 id="prehled">2.1 Přehled architektury</h3>
+  <p>
+    ARena je <strong>single-page webová aplikace (SPA)</strong> postavená na architektuře
+    komponent React. Celá aplikace běží v prohlížeči — nevyžaduje žádný backend server.
+    Data jsou ukládána do <code>localStorage</code> prohlížeče.
+  </p>
+  <p>
+    Architektura se dělí do tří logických vrstev:
+  </p>
+  <ul>
+    <li><strong>Prezentační vrstva</strong> — React komponenty zodpovědné za UI a interakci</li>
+    <li><strong>Stavová vrstva</strong> — Zustand store spravující celý stav aplikace</li>
+    <li><strong>Renderovací vrstva</strong> — Konva.js (2D) a React Three Fiber / Three.js (3D)</li>
+  </ul>
+
+  <div class="diagram-wrap">
+    <div class="mermaid">
+graph TD
+    Browser["Prohlížeč (Chrome / Firefox)"]
+    React["React 18 + TypeScript"]
+    Zustand["Zustand Store\n(editor.ts)"]
+    Konva["Konva.js\n2D Canvas Editor"]
+    R3F["React Three Fiber\n3D Cylindrický náhled"]
+    Storage["localStorage\nPerzistence dat"]
+    Export["Export\nZIP / JSON / PNG"]
+
+    Browser --> React
+    React --> Zustand
+    React --> Konva
+    React --> R3F
+    Zustand --> Storage
+    Konva --> Zustand
+    R3F --> Zustand
+    Zustand --> Export
+
+    style Browser fill:#f3f4f6,stroke:#9ca3af
+    style Zustand fill:#fce7f3,stroke:#E6007E,color:#000
+    style Konva fill:#dbeafe,stroke:#2563eb,color:#000
+    style R3F fill:#dcfce7,stroke:#16a34a,color:#000
+    style Storage fill:#fef9c3,stroke:#ca8a04,color:#000
+    style Export fill:#ede9fe,stroke:#7c3aed,color:#000
+    </div>
+    <div class="diagram-caption">Obrázek 2.1 — Přehled architektury aplikace ARena</div>
+  </div>
+
+  <h3 id="tech-stack">2.2 Technologický stack</h3>
+  <p>
+    Výběr technologií byl motivován třemi kritérii: <em>výkon</em> (plynulý 2D editor
+    s velkým canvasem), <em>ekosystém</em> (zralé knihovny pro 2D i 3D renderování)
+    a <em>typová bezpečnost</em> (TypeScript pro minimalizaci runtime chyb).
+  </p>
+
+  <div class="tech-grid">
+    <div class="tech-card">
+      <div class="tech-card-name">React</div>
+      <div class="tech-card-version">^18.3</div>
+      <div class="tech-card-desc">Komponentová architektura UI, reaktivní aktualizace pohledu při změně stavu</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-card-name">TypeScript</div>
+      <div class="tech-card-version">^5.8</div>
+      <div class="tech-card-desc">Statická typová kontrola; datový model projektu je plně typován</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-card-name">Vite</div>
+      <div class="tech-card-version">^6.x</div>
+      <div class="tech-card-desc">Build tool s HMR; výrazně rychlejší dev cyklus než webpack</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-card-name">Konva.js / react-konva</div>
+      <div class="tech-card-version">^9.3</div>
+      <div class="tech-card-desc">2D canvas engine s výkonným renderer, transformer pro resize/rotate, podpora drag&amp;drop</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-card-name">React Three Fiber</div>
+      <div class="tech-card-version">^8.x</div>
+      <div class="tech-card-desc">React wrapper nad Three.js; deklarativní tvorba 3D scény</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-card-name">Three.js</div>
+      <div class="tech-card-version">^0.176</div>
+      <div class="tech-card-desc">WebGL rendering; cylindrická geometrie s live texturou</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-card-name">Zustand + Immer</div>
+      <div class="tech-card-version">^5.x</div>
+      <div class="tech-card-desc">Minimalistický state management s immer middleware pro immutable updates</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-card-name">Tailwind CSS</div>
+      <div class="tech-card-version">v4</div>
+      <div class="tech-card-desc">Utility-first CSS framework; design tokenizovaný v CSS custom properties</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-card-name">@react-three/drei</div>
+      <div class="tech-card-version">^9.x</div>
+      <div class="tech-card-desc">Helper komponenty pro R3F: OrbitControls, GizmoHelper, useTexture</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-card-name">react-colorful</div>
+      <div class="tech-card-version">^5.6</div>
+      <div class="tech-card-desc">Lehký color picker (bez závislostí); použit v Inspektoru</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-card-name">JSZip</div>
+      <div class="tech-card-version">^3.10</div>
+      <div class="tech-card-desc">Generování ZIP archivů pro export projektu přímo v prohlížeči</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-card-name">Aspekta (font)</div>
+      <div class="tech-card-version">—</div>
+      <div class="tech-card-desc">Primární font UI; geometrický sans-serif s výbornou čitelností na obrazovce</div>
+    </div>
+  </div>
+
+  <h3 id="komponenty-diagram">2.3 Diagram komponent</h3>
+  <p>
+    Níže je zobrazena hierarchie React komponent aplikace od kořene <code>App</code>
+    po listové renderovací komponenty.
+  </p>
+
+  <div class="diagram-wrap">
+    <div class="mermaid">
+graph TD
+    App["App.tsx\n(kořen aplikace)"]
+
+    TopBar["TopBar\n(horní lišta)"]
+    SidebarRail["SidebarRail\n(levý panel)"]
+    Viewport["Viewport\n(pracovní plocha)"]
+    InspectorRail["InspectorRail\n(pravý panel)"]
+    SceneStrip["SceneStrip\n(spodní lišta scén)"]
+
+    LayersPanel["LayersPanel"]
+    AssetLibrary["AssetLibrary"]
+    Canvas2D["Canvas2D\n(Konva Stage)"]
+    CanvasShell3D["CanvasShell3D\n(R3F Canvas)"]
+    Toolbar["Toolbar\n(plovoucí nástroje)"]
+    Inspector["Inspector"]
+
+    WelcomeScreen["WelcomeScreen"]
+    ProjectPicker["ProjectPicker"]
+
+    App --> WelcomeScreen
+    App --> TopBar
+    App --> SidebarRail
+    App --> Viewport
+    App --> InspectorRail
+    App --> SceneStrip
+    App --> ProjectPicker
+
+    SidebarRail --> LayersPanel
+    SidebarRail --> AssetLibrary
+
+    Viewport --> Canvas2D
+    Viewport --> CanvasShell3D
+    Viewport --> Toolbar
+
+    InspectorRail --> Inspector
+
+    style App fill:#fce7f3,stroke:#E6007E,color:#000
+    style Canvas2D fill:#dbeafe,stroke:#2563eb,color:#000
+    style CanvasShell3D fill:#dcfce7,stroke:#16a34a,color:#000
+    </div>
+    <div class="diagram-caption">Obrázek 2.2 — Hierarchie React komponent</div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+     3. DATOVÝ MODEL
+════════════════════════════════════════════ -->
+<section class="chapter" id="datovy-model">
+  <div class="chapter-number">Kapitola 3</div>
+  <h2 class="chapter-title">Datový model</h2>
+
+  <p>
+    Celý datový model projektu je definován v souboru <code>src/types/project.ts</code>
+    jako TypeScript typy. Tato centrální definice zajišťuje typovou konzistenci
+    napříč celou aplikací.
+  </p>
+
+  <h3 id="projekt">3.1 Struktura projektu</h3>
+  <p>
+    Nejvyšší entitou je objekt <code>Project</code>, který obaluje veškerý obsah
+    jednoho editačního projektu:
+  </p>
+
+  <pre><code>type Project = {
+  id:           string;        // UUID projektu
+  name:         string;        // Název projektu
+  version:      string;        // Verze schématu ("1.0.0")
+  template:     Template;      // Parametry cylindrické scény
+  startSceneId: string;        // ID výchozí scény (pro preview)
+  assets:       Asset[];       // Knihovna médií (obrázky, videa, SVG)
+  scenes:       Scene[];       // Pole scén projektu
+  createdAt:    string;        // ISO timestamp vytvoření
+  updatedAt:    string;        // ISO timestamp poslední změny
+};</code></pre>
+
+  <h4>Šablona cylindru (Template)</h4>
+  <p>
+    Objekt <code>Template</code> definuje fyzikální parametry projekční plochy.
+    Výchozí hodnoty odpovídají typickému cylindrickému sálu:
+  </p>
+
+  <pre><code>type Template = {
+  width:              number;  // Šířka canvasu v px (= obvod, defaultně 7741 px)
+  height:             number;  // Výška canvasu v px (defaultně 2450 px)
+  segments:           number;  // Počet cylindrických segmentů (defaultně 6)
+  mode:               'cylinder-360';
+  projectionHeightCm?: number; // Fyzická výška projekce v cm (default 250 cm)
+  viewerHeightCm?:    number;  // Výška pozorovatele v cm (default 170 cm)
+  safeRadiusCm?:      number;  // Poloměr bezpečné zóny v cm (default 60 cm)
+};</code></pre>
+
+  <div class="callout callout-info">
+    <div class="callout-label">Poznámka k rozměrům</div>
+    Výchozí šířka canvasu 7741 px reprezentuje celých 360° obvodu cylindru.
+    Jeden pixel tedy odpovídá přibližně 0,0465° (360° / 7741 px).
+    Výchozí poměr stran 7741 : 2450 ≈ 3,16 : 1 odpovídá typickému cylindrickému sálu
+    o výšce 250 cm a průměru přibližně 15 m.
+  </div>
+
+  <h3 id="scena">3.2 Scény a objekty</h3>
+  <p>
+    Projekt obsahuje pole scén. Každá scéna je nezávislá kompozice objektů
+    na cylindrické ploše:
+  </p>
+
+  <pre><code>type Scene = {
+  id:         string;         // UUID scény
+  name:       string;         // Název scény
+  notes?:     string;         // Volné poznámky designéra
+  background?: string;        // Barva pozadí (hex)
+  thumbnail?: string;         // Base64 miniatura (generovaná)
+  objects:    SceneObject[];  // Pole objektů scény
+};
+
+type SceneObject = {
+  id:         string;
+  type:       SceneObjectType;  // 'image'|'svg'|'video'|'text'|'hotspot'|'shape'
+  name:       string;
+  x:          number;           // Levý okraj v px (souřadnice canvasu)
+  y:          number;           // Horní okraj v px (souřadnice canvasu)
+  width:      number;           // Šířka v px
+  height:     number;           // Výška v px
+  rotation:   number;           // Rotace ve stupních
+  opacity:    number;           // Průhlednost 0.0–1.0
+  visible:    boolean;
+  locked:     boolean;
+  zIndex:     number;           // Pořadí vrstev (vyšší = navrch)
+  props:      SceneObjectProps; // Typ-specifické vlastnosti
+  interactions?: Interaction[];
+};</code></pre>
+
+  <h3 id="typy-objektu">3.3 Typy objektů</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Typ</th>
+        <th>Klíčové vlastnosti (props)</th>
+        <th>Popis</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>image</code></td>
+        <td><code>assetId</code>, <code>preserveAspectRatio</code></td>
+        <td>Rastrový obrázek z knihovny assetů (PNG, JPG, WebP)</td>
+      </tr>
+      <tr>
+        <td><code>svg</code></td>
+        <td><code>assetId</code>, <code>preserveAspectRatio</code></td>
+        <td>Vektorová grafika; renderovaná jako inline SVG</td>
+      </tr>
+      <tr>
+        <td><code>video</code></td>
+        <td><code>assetId</code>, <code>loop</code>, <code>muted</code>, <code>autoplay</code></td>
+        <td>Video soubor přehrávaný na canvasu (přes HTML <code>&lt;video&gt;</code> element)</td>
+      </tr>
+      <tr>
+        <td><code>text</code></td>
+        <td><code>content</code>, <code>fontFamily</code>, <code>fontSize</code>, <code>fontWeight</code>, <code>color</code>, <code>align</code></td>
+        <td>Textový blok s plnou typografickou kontrolou</td>
+      </tr>
+      <tr>
+        <td><code>hotspot</code></td>
+        <td><code>label</code>, <code>invisible</code>, <code>fill</code>, <code>stroke</code></td>
+        <td>Interaktivní oblast pro navigaci nebo akce v preview režimu</td>
+      </tr>
+      <tr>
+        <td><code>shape</code></td>
+        <td><code>shape</code> ('rect'|'ellipse'), <code>fill</code>, <code>stroke</code>, <code>cornerRadius</code></td>
+        <td>Geometrický tvar pro dekoraci nebo překryv</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="interakce">3.4 Interakce</h3>
+  <p>
+    Každý objekt může mít přiřazeno pole <code>Interaction</code>, které definuje
+    chování v preview/přehrávacím režimu. Interakce mají strukturu
+    <em>trigger → action → target</em>:
+  </p>
+
+  <pre><code>type Interaction = {
+  id:       string;
+  trigger:  'onClick' | 'onSceneEnter' | 'onTimer' | 'onHover';
+  action:   'goToScene' | 'showObject' | 'hideObject' | 'toggleObject'
+           | 'setText' | 'playVideo' | 'pauseVideo';
+  targetId?: string;   // ID cílového objektu nebo scény
+  value?:    string;   // Volná hodnota (text, čas apod.)
+  delayMs?:  number;   // Zpoždění akce v ms
+};</code></pre>
+
+  <h3 id="er-diagram">3.5 ER diagram datového modelu</h3>
+
+  <div class="diagram-wrap">
+    <div class="mermaid">
+erDiagram
+    PROJECT {
+        string id PK
+        string name
+        string version
+        string startSceneId FK
+        string createdAt
+        string updatedAt
+    }
+    TEMPLATE {
+        number width
+        number height
+        number segments
+        number projectionHeightCm
+        number viewerHeightCm
+        number safeRadiusCm
+    }
+    ASSET {
+        string id PK
+        string name
+        string type
+        string mimeType
+        string src
+    }
+    SCENE {
+        string id PK
+        string name
+        string background
+        string notes
+    }
+    SCENE_OBJECT {
+        string id PK
+        string type
+        string name
+        number x
+        number y
+        number width
+        number height
+        number rotation
+        number opacity
+        number zIndex
+        boolean visible
+        boolean locked
+    }
+    INTERACTION {
+        string id PK
+        string trigger
+        string action
+        string targetId
+        number delayMs
+    }
+
+    PROJECT ||--|| TEMPLATE : "má"
+    PROJECT ||--o{ ASSET : "obsahuje"
+    PROJECT ||--o{ SCENE : "obsahuje"
+    SCENE ||--o{ SCENE_OBJECT : "obsahuje"
+    SCENE_OBJECT ||--o{ INTERACTION : "má"
+    </div>
+    <div class="diagram-caption">Obrázek 3.1 — ER diagram datového modelu projektu ARena</div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+     4. IMPLEMENTACE
+════════════════════════════════════════════ -->
+<section class="chapter" id="implementace">
+  <div class="chapter-number">Kapitola 4</div>
+  <h2 class="chapter-title">Implementace klíčových subsystémů</h2>
+
+  <!-- 4.1 Canvas 2D -->
+  <h3 id="canvas-2d">4.1 2D editor — Konva</h3>
+  <p>
+    Jádrem editoru je komponenta <code>Canvas2D</code> využívající knihovnu
+    <strong>Konva.js</strong> přes React wrapper <code>react-konva</code>.
+    Konva poskytuje abstrakci nad HTML5 Canvas API s podporou:
+  </p>
+  <ul>
+    <li>Hierarchického stromu uzlů (Stage → Layer → Group → Shape)</li>
+    <li>Vestavěného hit-testingu pro výběr objektů</li>
+    <li>Transformer node pro interaktivní resize a rotaci výběru</li>
+    <li>Drag&amp;drop se snap-to-guide logikou</li>
+  </ul>
+
+  <h4>Struktura Konva Stage</h4>
+  <p>
+    Canvas se skládá ze čtyř vrstev (Konva <code>Layer</code>):
+  </p>
+
+  <div class="diagram-wrap">
+    <div class="mermaid">
+graph TD
+    Stage["Konva Stage\n(celá viewport oblast)"]
+    BgLayer["Layer: Pozadí\n(canvas-bg rect, mřížka,\nsegmentové linky, safe zone)"]
+    ObjLayer["Layer: Objekty\n(SceneObject uzly,\nTransformer)"]
+    GuideLayer["Layer: Průvodce\n(horizontal/vertical guides,\nrulers)"]
+    MarqueeLayer["Layer: Marquee\n(výběrový obdélník)"]
+
+    Stage --> BgLayer
+    Stage --> ObjLayer
+    Stage --> GuideLayer
+    Stage --> MarqueeLayer
+
+    style Stage fill:#fce7f3,stroke:#E6007E,color:#000
+    </div>
+    <div class="diagram-caption">Obrázek 4.1 — Vrstvová struktura Konva Stage</div>
+  </div>
+
+  <!-- 4.2 Zoom/Pan -->
+  <h3 id="zoom-pan">4.2 Souřadnicový systém a zoom/pan transformace</h3>
+  <p>
+    Editor udržuje dvě sady souřadnic — <strong>screenové</strong> (pixely viewportu)
+    a <strong>světové</strong> (pixely canvasu). Transformace mezi nimi závisí
+    na aktuálním zoomu a posunu:
+  </p>
+
+  <div class="math-block">
+    <div class="formula">
+      <span class="formula-var">worldX</span>
+      <span>=</span>
+      <span><span class="formula-var">(screenX</span> − <span class="formula-var">panX)</span></span>
+      <span>÷</span>
+      <span class="formula-var">zoom</span>
+      <span class="formula-comment">// screen → canvas</span>
+    </div>
+    <div class="formula">
+      <span class="formula-var">screenX</span>
+      <span>=</span>
+      <span class="formula-var">worldX</span>
+      <span>×</span>
+      <span class="formula-var">zoom</span>
+      <span>+</span>
+      <span class="formula-var">panX</span>
+      <span class="formula-comment">// canvas → screen</span>
+    </div>
+  </div>
+
+  <h4>Zoom k bodu (cursor-centric zoom)</h4>
+  <p>
+    Při zoom gestě (Ctrl + kolečko myši) musí canvas zůstat "přichycen" pod kurzorem.
+    Toho se dosahuje dvoufázovou transformací:
+  </p>
+
+  <div class="math-block">
+    <div class="formula">
+      <span class="formula-comment">// 1. Zachovej světovou polohu bodu pod kurzorem</span>
+    </div>
+    <div class="formula">
+      <span class="formula-var">worldX</span>
+      <span>=</span>
+      <span><span class="formula-var">(pointer.x</span> − <span class="formula-var">panX)</span></span>
+      <span>÷</span>
+      <span class="formula-var">zoom</span>
+    </div>
+    <div class="formula">
+      <span class="formula-comment">// 2. Vypočítej nový pan tak, aby worldX zůstalo pod pointer.x</span>
+    </div>
+    <div class="formula">
+      <span class="formula-var">newPanX</span>
+      <span>=</span>
+      <span class="formula-var">pointer.x</span>
+      <span>−</span>
+      <span><span class="formula-var">worldX</span> × <span class="formula-var">newZoom</span></span>
+    </div>
+  </div>
+
+  <p>
+    Zoom je omezen na rozsah <code>[MIN_ZOOM = 0.02, MAX_ZOOM = 4.0]</code>.
+    Faktor zoomu na jeden krok kolečka je <strong>1.12</strong> (12% per krok).
+  </p>
+
+  <h4>Auto-fit při startu</h4>
+  <p>
+    Při prvním zobrazení canvasu se automaticky nastaví zoom tak, aby se celá
+    projekční plocha vešla do viewportu s paddingem 32 px:
+  </p>
+
+  <div class="math-block">
+    <div class="formula">
+      <span class="formula-var">fitZoom</span>
+      <span>=</span>
+      <span>min(</span>
+      <span><span class="formula-var">(viewport.w − 64)</span> ÷ <span class="formula-var">template.width</span>,</span>
+      <span><span class="formula-var">(viewport.h − 64)</span> ÷ <span class="formula-var">template.height</span></span>
+      <span>)</span>
+    </div>
+    <div class="formula">
+      <span class="formula-var">panX</span>
+      <span>=</span>
+      <span><span class="formula-var">(viewport.w</span> − <span class="formula-var">template.width × fitZoom)</span></span>
+      <span>÷</span>
+      <span class="formula-const">2</span>
+      <span class="formula-comment">// vycentruj horizontálně</span>
+    </div>
+  </div>
+
+  <!-- 4.3 Safe Zone -->
+  <h3 id="safe-zone">4.3 Matematický model — výpočet bezpečné zóny</h3>
+  <p>
+    Bezpečná zóna (<em>safe zone</em>) je horizontální pás na canvasu,
+    který je v cylindrickém prostoru viditelný pro pozorovatele dané výšky.
+    Výpočet vychází z fyzikálních parametrů cylindru uložených v <code>Template</code>.
+  </p>
+
+  <h4>Fyzikální model</h4>
+  <p>
+    Cylindr stojí svisle; pozorovatel stojí uvnitř na podlaze.
+    Souřadnice <code>y = 0</code> na canvasu odpovídá <em>vrcholu</em> cylindru (stropu),
+    <code>y = template.height</code> odpovídá <em>podlaze</em>.
+  </p>
+
+  <div class="diagram-wrap">
+    <div class="mermaid">
+graph LR
+    subgraph Fyzický prostor
+      CEIL["Strop\n(y = 0)"]
+      EYE["Úroveň očí\n(y = eyeLevelPx)"]
+      SAFE_TOP["Horní hranice\nbezp. zóny"]
+      SAFE_BOT["Spodní hranice\nbezp. zóny"]
+      FLOOR["Podlaha\n(y = height)"]
+    end
+
+    CEIL -->|"eyeFromTopCm × pxPerCm"| EYE
+    EYE -->|"−safeRadiusCm × pxPerCm"| SAFE_TOP
+    EYE -->|"+safeRadiusCm × pxPerCm"| SAFE_BOT
+    SAFE_TOP -.->|"bezpečná zóna"| SAFE_BOT
+
+    style EYE fill:#fce7f3,stroke:#E6007E,color:#000
+    style SAFE_TOP fill:#dcfce7,stroke:#16a34a,color:#000
+    style SAFE_BOT fill:#dcfce7,stroke:#16a34a,color:#000
+    </div>
+    <div class="diagram-caption">Obrázek 4.2 — Fyzikální model výpočtu bezpečné zóny</div>
+  </div>
+
+  <h4>Výpočetní vzorce</h4>
+  <p>
+    Implementace funkce <code>computeSafeZone(template)</code> z <code>src/types/project.ts</code>:
+  </p>
+
+  <div class="math-block">
+    <div class="formula">
+      <span class="formula-var">pxPerCm</span>
+      <span>=</span>
+      <span class="formula-var">template.height</span>
+      <span>÷</span>
+      <span class="formula-var">projectionHeightCm</span>
+      <span class="formula-comment">// převod cm → px</span>
+    </div>
+    <div class="formula">
+      <span class="formula-var">eyeFromTopCm</span>
+      <span>=</span>
+      <span class="formula-var">projectionHeightCm</span>
+      <span>−</span>
+      <span class="formula-var">viewerHeightCm</span>
+      <span class="formula-comment">// vzdálenost očí od vrcholu cylindru</span>
+    </div>
+    <div class="formula">
+      <span class="formula-var">eyeLevelPx</span>
+      <span>=</span>
+      <span class="formula-var">eyeFromTopCm</span>
+      <span>×</span>
+      <span class="formula-var">pxPerCm</span>
+      <span class="formula-comment">// y-pozice úrovně očí na canvasu</span>
+    </div>
+    <div class="formula">
+      <span class="formula-var">topPx</span>
+      <span>=</span>
+      <span>max(0,</span>
+      <span><span class="formula-var">eyeLevelPx</span> − <span class="formula-var">safeRadiusCm</span> × <span class="formula-var">pxPerCm</span>)</span>
+      <span class="formula-comment">// horní hranice bezp. zóny</span>
+    </div>
+    <div class="formula">
+      <span class="formula-var">bottomPx</span>
+      <span>=</span>
+      <span>max(0,</span>
+      <span><span class="formula-var">template.height</span> − (<span class="formula-var">eyeLevelPx</span> + <span class="formula-var">safeRadiusCm</span> × <span class="formula-var">pxPerCm</span>))</span>
+      <span class="formula-comment">// vzdálenost dolní hranice od dna</span>
+    </div>
+  </div>
+
+  <h4>Příklad výpočtu (výchozí hodnoty)</h4>
+  <table>
+    <thead>
+      <tr><th>Parametr</th><th>Hodnota</th><th>Výsledek</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>projectionHeightCm</code></td><td>250 cm</td><td>—</td></tr>
+      <tr><td><code>viewerHeightCm</code></td><td>170 cm</td><td>—</td></tr>
+      <tr><td><code>safeRadiusCm</code></td><td>60 cm</td><td>—</td></tr>
+      <tr><td><code>template.height</code></td><td>2450 px</td><td>—</td></tr>
+      <tr><td><strong>pxPerCm</strong></td><td>2450 ÷ 250</td><td><strong>9,8 px/cm</strong></td></tr>
+      <tr><td><strong>eyeFromTopCm</strong></td><td>250 − 170</td><td><strong>80 cm</strong></td></tr>
+      <tr><td><strong>eyeLevelPx</strong></td><td>80 × 9,8</td><td><strong>784 px</strong></td></tr>
+      <tr><td><strong>topPx</strong></td><td>784 − 60×9,8</td><td><strong>196 px</strong></td></tr>
+      <tr><td><strong>bottomPx</strong></td><td>2450 − (784 + 588)</td><td><strong>1078 px</strong></td></tr>
+    </tbody>
+  </table>
+  <p>
+    Bezpečná zóna pro výchozí parametry leží v rozsahu <strong>y ∈ [196, 1372] px</strong>,
+    tedy přibližně v horní třetině canvasu — odpovídá oblasti přirozeného pohledu
+    stojícího člověka.
+  </p>
+
+  <!-- 4.4 3D -->
+  <h3 id="cylind-3d">4.4 3D cylindrický náhled — React Three Fiber</h3>
+  <p>
+    3D náhled je implementován v komponentě <code>CanvasShell3D</code>
+    pomocí <strong>React Three Fiber</strong> (deklarativní React wrapper
+    nad Three.js / WebGL).
+  </p>
+
+  <h4>Geometrie cylindru</h4>
+  <p>
+    Geometrie je generována pomocí Three.js <code>CylinderGeometry</code>
+    s parametry odvozenými z <code>Template</code>:
+  </p>
+
+  <pre><code>// Vnější poloměr cylindru v 3D jednotkách
+const outerRadius = 2.5;
+
+// Výška cylindru zachovává poměr stran projekční plochy
+const height = (template.height / template.width) * (Math.PI * 2 * outerRadius);
+
+// Geometrie — 96 segmentů pro plynulý povrch
+new THREE.CylinderGeometry(outerRadius, outerRadius, height, 96, 1, true)
+// true = openEnded (bez víček)</code></pre>
+
+  <p>
+    Cylindr se renderuje jako <strong>dvě meshes</strong>:
+  </p>
+  <ul>
+    <li><strong>Vnější povrch</strong> (<code>FrontSide</code>, opacity 0.18) — umožňuje spatřit cylindr zvenku</li>
+    <li><strong>Vnitřní povrch</strong> (<code>BackSide</code>, opacity 1.0) — plná textura pro pohled zevnitř</li>
+  </ul>
+
+  <h4>Kamera a ovládání</h4>
+  <pre><code>// Počáteční pozice kamery — pohled zvenku do cylindru
+camera={{ position: [0, 1.4, 6.5], fov: 40 }}
+
+// OrbitControls omezení
+enablePan={false}
+minDistance={0.5}   // max zoom dovnitř
+maxDistance={14}    // max zoom ven
+maxPolarAngle={Math.PI / 1.6}  // omezení úhlu (ne zcela dolů)</code></pre>
+
+  <!-- 4.5 Render pipeline -->
+  <h3 id="render-pipeline">4.5 Render pipeline — textura z 2D canvasu</h3>
+  <p>
+    Klíčovým mechanismem propojení 2D editoru s 3D náhledem je
+    <strong>live textura</strong> — canvas textura Three.js generovaná
+    renderem aktuální 2D scény.
+  </p>
+
+  <div class="diagram-wrap">
+    <div class="mermaid">
+sequenceDiagram
+    participant S as Zustand Store
+    participant R as renderSceneToCanvas()
+    participant C as HTML Canvas Element
+    participant T as THREE.CanvasTexture
+    participant M as Three.js Mesh
+
+    S->>R: scene + template změní stav
+    R->>C: vykreslí pozadí, assety, objekty (2D)
+    C->>T: new THREE.CanvasTexture(canvas)
+    T->>T: texture.needsUpdate = true
+    T->>M: map = texture
+    M-->>Browser: WebGL render s novou texturou
+    </div>
+    <div class="diagram-caption">Obrázek 4.3 — Pipeline renderování textury na 3D cylindr</div>
+  </div>
+
+  <p>
+    Funkce <code>renderSceneToCanvas()</code> v <code>src/lib/renderScene.ts</code>
+    renderuje scénu do pomocného HTML <code>&lt;canvas&gt;</code> elementu
+    ve dvou průchodech:
+  </p>
+  <ol>
+    <li><strong>Průchod 1</strong>: Pozadí + průvodní linky (segmenty, mřížka)</li>
+    <li><strong>Průchod 2</strong>: Objekty scény seřazené dle <code>zIndex</code> (painter's algorithm)</li>
+  </ol>
+  <p>
+    Textura se renderuje v rozlišení <strong>2048 px šíře</strong> (poměr stran zachován),
+    nezávisle na aktuálním zoomu 2D editoru.
+  </p>
+
+  <!-- 4.6 State management -->
+  <h3 id="state-management">4.6 Správa stavu — Zustand</h3>
+  <p>
+    Celý stav aplikace je centralizován v jednom Zustand store
+    (<code>src/store/editor.ts</code>). Store je vytvořen s <code>immer</code>
+    middleware, který umožňuje mutační styl zápisu při zachování immutability.
+  </p>
+
+  <h4>Hlavní části stavu</h4>
+
+  <div class="diagram-wrap">
+    <div class="mermaid">
+stateDiagram-v2
+    [*] --> Idle
+
+    Idle --> Editing: selectObject()
+    Idle --> Editing: addObject()
+
+    Editing --> Idle: clearSelection()
+    Editing --> Editing: updateObject()
+    Editing --> Editing: moveObject()
+
+    Editing --> HistoryPush: pushHistory()
+    HistoryPush --> Editing: akce dokončena
+
+    Idle --> UndoRedo: undo() / redo()
+    Editing --> UndoRedo: undo() / redo()
+    UndoRedo --> Idle
+
+    Idle --> Preview: setPreviewMode(true)
+    Preview --> Idle: setPreviewMode(false)
+    </div>
+    <div class="diagram-caption">Obrázek 4.4 — Stavový diagram editoru</div>
+  </div>
+
+  <h4>Historie (undo/redo)</h4>
+  <p>
+    Undo/redo je implementováno jako <strong>snapshot-based history</strong>:
+    před každou destruktivní operací se volá <code>pushHistory()</code>,
+    která uloží aktuální <code>Project</code> objekt do zásobníku <code>history.past</code>.
+  </p>
+
+  <pre><code>// Struktura historického zásobníku
+history: {
+  past:   Project[],  // zásobník zpět (max 50 položek)
+  future: Project[],  // zásobník vpřed (prázdní po nové akci)
+}</code></pre>
+
+  <p>
+    Celý objekt <code>Project</code> se serializuje do historického zásobníku —
+    stav je tedy plně obnoven včetně všech scén, objektů a jejich vlastností.
+    Hloubka zásobníku je omezena na <strong>50 kroků</strong> z důvodu paměťové efektivity.
+  </p>
+
+  <!-- 4.7 Persistence -->
+  <h3 id="persistence">4.7 Perzistence dat a autosave</h3>
+  <p>
+    ARena pracuje jako <strong>local-first aplikace</strong> — veškerá data
+    jsou uložena v prohlížeči, bez nutnosti síťového připojení.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Mechanismus</th><th>Použití</th><th>Kapacita</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>localStorage</strong></td>
+        <td>Metadata projektů, seznam projektů</td>
+        <td>~5 MB (limit prohlížeče)</td>
+      </tr>
+      <tr>
+        <td><strong>IndexedDB</strong></td>
+        <td>Binární obsah assetů (obrázky, videa jako base64/blob URL)</td>
+        <td>Stovky MB (závisí na prohlížeči)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    <strong>Autosave</strong> je implementován hookem <code>useAutosave()</code>,
+    který reaguje na změny stavu Zustand store a ukládá projekt
+    po 800ms debounce od poslední změny.
+  </p>
+
+  <!-- 4.8 Export -->
+  <h3 id="export">4.8 Export</h3>
+  <p>
+    Export je dostupný přes komponentu <code>ExportMenu</code> v TopBaru.
+    Jsou podporovány tři formáty:
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Formát</th><th>Obsah</th><th>Použití</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>JSON</strong></td>
+        <td>Celý <code>Project</code> objekt serializovaný jako JSON</td>
+        <td>Záloha, přenos mezi zařízeními, verzování</td>
+      </tr>
+      <tr>
+        <td><strong>ZIP</strong></td>
+        <td>JSON projektu + extrahované assety jako soubory</td>
+        <td>Archivace, odevzdání projektu</td>
+      </tr>
+      <tr>
+        <td><strong>PNG</strong></td>
+        <td>Render aktuální scény jako rastrový obrázek (2048 px šíře)</td>
+        <td>Náhled, tisk, předání produkci</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+     5. UŽIVATELSKÉ ROZHRANÍ
+════════════════════════════════════════════ -->
+<section class="chapter" id="ui">
+  <div class="chapter-number">Kapitola 5</div>
+  <h2 class="chapter-title">Uživatelské rozhraní</h2>
+
+  <h3 id="layout">5.1 Rozložení aplikace</h3>
+  <p>
+    UI se řídí klasickým <strong>4-panelový editor layout</strong>
+    (horní lišta, levý panel, střed, pravý panel, spodní lišta) —
+    vzor zavedený profesionálními nástroji jako Figma nebo Adobe XD.
+  </p>
+
+  <div class="diagram-wrap">
+    <div class="mermaid">
+graph TD
+    subgraph App["Celá obrazovka (100vw × 100vh)"]
+        TB["TopBar — 56px\n(logo, název projektu, přepínač 2D/3D, nástroje pohledu, Preview, Export)"]
+        subgraph Main["Hlavní oblast (flex-1)"]
+            SR["SidebarRail\n(48px nav rail + 260px panel)\nVrstvy / Assety"]
+            VP["Viewport (flex-1)\nCanvas2D nebo CanvasShell3D\n+ plovoucí Toolbar nahoře\n+ HUD s zoom/undo dole"]
+            IR["InspectorRail\n(300px)\nInspektor vybraného objektu"]
+        end
+        SS["SceneStrip — 88px\n(miniatury scén, přidání scény)"]
+    end
+    </div>
+    <div class="diagram-caption">Obrázek 5.1 — Rozložení UI aplikace ARena</div>
+  </div>
+
+  <h3 id="komponenty">5.2 Popis komponent</h3>
+
+  <h4>TopBar</h4>
+  <p>
+    Horní navigační lišta obsahuje tři logické sekce oddělené flexbox layoutem:
+  </p>
+  <ul>
+    <li><strong>Vlevo</strong>: logo (odkaz na ProjectPicker), editovatelný název projektu</li>
+    <li><strong>Střed</strong>: přepínač 2D/3D, přepínače mřížky/segmentů/safe zone (icon buttons)</li>
+    <li><strong>Vpravo</strong>: badge stavu uložení, tlačítko nápovědy, tlačítko Preview (gradient), ExportMenu</li>
+  </ul>
+
+  <h4>SidebarRail</h4>
+  <p>
+    Levá část se skládá ze dvou vrstev:
+  </p>
+  <ul>
+    <li><strong>Nav rail</strong> (48 px) — ikony pro přepínání panelů + tlačítko hide/show všech panelů</li>
+    <li><strong>Panel</strong> (260 px) — buď <code>LayersPanel</code> (strom objektů scény s drag-to-reorder) nebo <code>AssetLibrary</code> (miniatura assetů)</li>
+  </ul>
+
+  <h4>Toolbar</h4>
+  <p>
+    Plovoucí lišta nástrojů umístěná nad canvasem (absolutně pozicovaná, centrovaná horizontálně).
+    Každý nástroj je draggable — přetažením na canvas se objekt vytvoří na konkrétní pozici.
+    Kliknutím se objekt přidá do středu canvasu.
+  </p>
+  <table>
+    <thead><tr><th>Nástroj</th><th>Klávesa</th><th>Typ objektu</th></tr></thead>
+    <tbody>
+      <tr><td>Text (T)</td><td>—</td><td><code>text</code></td></tr>
+      <tr><td>Hotspot</td><td>—</td><td><code>hotspot</code></td></tr>
+      <tr><td>Obdélník</td><td>—</td><td><code>shape</code> (rect)</td></tr>
+      <tr><td>Elipsa</td><td>—</td><td><code>shape</code> (ellipse)</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Inspector</h4>
+  <p>
+    Pravý panel kontextově zobrazuje vlastnosti právě vybraného objektu
+    (nebo vlastnosti scény, není-li nic vybráno). Sekce jsou:
+    <em>Editor</em> (pozice, rotace), <em>Layout</em> (rozměry, vrstva),
+    <em>Appearance</em> (průhlednost), typ-specifické sekce (Text, Fill, Hotspot…)
+    a <em>Action</em> (správa interakcí).
+  </p>
+
+  <h4>SceneStrip</h4>
+  <p>
+    Spodní lišta zobrazuje miniatury všech scén projektu. Aktivní scéna
+    je zvýrazněna accent barvou s pink glowem. Kliknutím na miniaturu
+    se přepne aktivní scéna. Kontextové hover akce umožňují duplicitu
+    nebo smazání scény.
+  </p>
+
+  <h4>Design systém</h4>
+  <p>
+    UI používá <strong>glassmorphism design jazyk</strong> s light-mode only přístupem.
+    Klíčové tokeny:
+  </p>
+  <table>
+    <thead><tr><th>Token</th><th>Hodnota</th><th>Použití</th></tr></thead>
+    <tbody>
+      <tr><td><code>--color-accent</code></td><td>#E6007E</td><td>Brand barva — aktivní stavy, CTA tlačítka</td></tr>
+      <tr><td><code>--color-accent-gradient</code></td><td>linear-gradient(135deg, #E6007E, #FF5BAA)</td><td>Preview button, New scene button</td></tr>
+      <tr><td><code>--glass-panel</code></td><td>rgba(255,255,255,0.82)</td><td>Postranní panely s backdrop-filter</td></tr>
+      <tr><td><code>--glass-bar</code></td><td>rgba(255,255,255,0.88)</td><td>TopBar, SceneStrip</td></tr>
+      <tr><td><code>--glass-float</code></td><td>rgba(255,255,255,0.94)</td><td>Plovoucí prvky (Toolbar, HUD, modals)</td></tr>
+      <tr><td><code>--glass-blur-md</code></td><td>blur(20px)</td><td>Střední backdrop-filter blur</td></tr>
+    </tbody>
+  </table>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+     6. SEKVENČNÍ DIAGRAMY
+════════════════════════════════════════════ -->
+<section class="chapter" id="toky">
+  <div class="chapter-number">Kapitola 6</div>
+  <h2 class="chapter-title">Sekvenční diagramy</h2>
+
+  <h3>6.1 Přetažení nástroje na canvas (drag &amp; drop)</h3>
+
+  <div class="diagram-wrap">
+    <div class="mermaid">
+sequenceDiagram
+    actor U as Uživatel
+    participant T as Toolbar
+    participant C as Canvas2D
+    participant S as Zustand Store
+
+    U->>T: dragstart na nástroj
+    T->>T: setCanvasDragData(event, {kind:'tool', tool:'text'})
+    U->>C: drop na canvas
+    C->>C: readCanvasDropData(event)
+    C->>C: wx = (clientX − rect.left − panX) / zoom
+    C->>C: wy = (clientY − rect.top − panY) / zoom
+    C->>S: addObject(buildToolObject('text', wx, wy))
+    S->>S: generuje UUID, přiřadí zIndex
+    S-->>C: re-render s novým objektem
+    C-->>U: objekt viditelný na canvasu
+    </div>
+    <div class="diagram-caption">Obrázek 6.1 — Sekvenční diagram: drag &amp; drop nástroje na canvas</div>
+  </div>
+
+  <h3>6.2 Resize objektu přes Transformer</h3>
+
+  <div class="diagram-wrap">
+    <div class="mermaid">
+sequenceDiagram
+    actor U as Uživatel
+    participant K as Konva Transformer
+    participant C as Canvas2D
+    participant S as Zustand Store
+
+    U->>K: táhne rohový handle
+    K->>K: přepočítá scaleX, scaleY
+    U->>K: mouseup (konec resize)
+    K->>C: onTransformEnd()
+    C->>C: Přečte node.scaleX(), node.scaleY()
+    C->>C: newWidth = obj.width × scaleX
+    C->>C: newHeight = obj.height × scaleY
+    C->>C: Resetuje scale na 1
+    C->>S: pushHistory()
+    C->>S: updateObject(id, {width, height, x, y, rotation})
+    S-->>C: re-render s novými rozměry
+    </div>
+    <div class="diagram-caption">Obrázek 6.2 — Sekvenční diagram: resize objektu pomocí Transformer</div>
+  </div>
+
+  <h3>6.3 Přepnutí do 3D náhledu</h3>
+
+  <div class="diagram-wrap">
+    <div class="mermaid">
+sequenceDiagram
+    actor U as Uživatel
+    participant TB as TopBar
+    participant S as Zustand Store
+    participant VP as Viewport
+    participant R as renderSceneToCanvas()
+    participant R3F as CanvasShell3D
+
+    U->>TB: klikne na "3D"
+    TB->>S: setViewMode('3d')
+    VP->>VP: mode === '3d' → unmount Canvas2D
+    VP->>R3F: lazy import + mount CanvasShell3D
+    R3F->>R: renderSceneToCanvas(scene, template)
+    R-->>R3F: HTML Canvas element
+    R3F->>R3F: new THREE.CanvasTexture(canvas)
+    R3F->>R3F: Aplikuje texturu na CylinderGeometry
+    R3F-->>U: Zobrazí 3D náhled s orbitálním ovládáním
+    </div>
+    <div class="diagram-caption">Obrázek 6.3 — Sekvenční diagram: přepnutí do 3D náhledu</div>
+  </div>
+
+  <h3>6.4 Autosave cyklus</h3>
+
+  <div class="diagram-wrap">
+    <div class="mermaid">
+sequenceDiagram
+    participant S as Zustand Store
+    participant AS as useAutosave hook
+    participant LS as localStorage / IndexedDB
+
+    S->>AS: změna project (subscribe)
+    AS->>AS: setSaveState('unsaved')
+    AS->>AS: debounce(800ms) — čeká na klid
+    AS->>AS: setSaveState('saving')
+    AS->>LS: saveProject(project)
+    LS-->>AS: uložení dokončeno
+    AS->>AS: setSaveState('saved')
+    AS-->>S: aktualizace saveState → re-render SaveBadge
+    </div>
+    <div class="diagram-caption">Obrázek 6.4 — Sekvenční diagram: autosave cyklus</div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+     7. ZÁVĚR
+════════════════════════════════════════════ -->
+<section class="chapter" id="zaver">
+  <div class="chapter-number">Kapitola 7</div>
+  <h2 class="chapter-title">Závěr a možná rozšíření</h2>
+
+  <h3>7.1 Shrnutí</h3>
+  <p>
+    ARena představuje funkční proof-of-concept specializovaného editorského nástroje
+    pro cylindrické projekční scény. Aplikace úspěšně kombinuje:
+  </p>
+  <ul>
+    <li>Plnohodnotný 2D canvas editor s Konva.js (drag&amp;drop, resize, rotace, vrstvení, snap k průvodcím)</li>
+    <li>Fyzikálně korektní výpočet bezpečné zóny pro pozorovatele různých výšek</li>
+    <li>Real-time 3D cylindrický náhled s live texturou z 2D editoru</li>
+    <li>Interaktivní systém hotspotů pro navigaci mezi scénami</li>
+    <li>Local-first architekturu s autosave a multi-formátovým exportem</li>
+  </ul>
+
+  <h3>7.2 Technická omezení</h3>
+
+  <div class="callout callout-warning">
+    <div class="callout-label">Aktuální omezení</div>
+    <ul style="margin:0; padding-left:1.25rem;">
+      <li>Kapacita localStorage limituje velikost projektů s mnoha médii</li>
+      <li>Video objekty nejsou zahrnuty do 3D textury (HTML video nelze přímo použít jako WebGL textura bez dalšího zpracování)</li>
+      <li>Export PNG renderuje vždy v 2048 px šíři — pro very large format produkci by bylo žádoucí vyšší rozlišení</li>
+      <li>Žádná podpora kooperativní editace (single-user)</li>
+    </ul>
+  </div>
+
+  <h3>7.3 Možná rozšíření</h3>
+
+  <table>
+    <thead>
+      <tr><th>Oblast</th><th>Možné rozšíření</th><th>Priorita</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Export</strong></td>
+        <td>Export do interaktivního HTML přehrávače (self-contained, spustitelný v prohlížeči)</td>
+        <td>Vysoká</td>
+      </tr>
+      <tr>
+        <td><strong>3D náhled</strong></td>
+        <td>Podpora video textur na cylindru; simulace osvětlení</td>
+        <td>Střední</td>
+      </tr>
+      <tr>
+        <td><strong>Animace</strong></td>
+        <td>Timeline editor pro animaci objektů v čase</td>
+        <td>Střední</td>
+      </tr>
+      <tr>
+        <td><strong>Typy projekcí</strong></td>
+        <td>Podpora sférické projekce (360° dome, equirectangular)</td>
+        <td>Střední</td>
+      </tr>
+      <tr>
+        <td><strong>Kolaborace</strong></td>
+        <td>Real-time synchronizace přes WebSocket / CRDT (Yjs)</td>
+        <td>Nízká</td>
+      </tr>
+      <tr>
+        <td><strong>Assets</strong></td>
+        <td>Integrace cloudových úložišť (Google Drive, Dropbox)</td>
+        <td>Nízká</td>
+      </tr>
+      <tr>
+        <td><strong>Přístupnost</strong></td>
+        <td>Plná ARIA podpora canvasu, klávesová navigace</td>
+        <td>Střední</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr />
+
+  <p style="font-family: var(--font-sans); font-size: 0.85rem; color: var(--text-muted); text-align: center; margin-top: 2rem;">
+    Technická dokumentace projektu <strong>ARena Editor</strong> · Verze schématu 1.0.0 · 2026<br />
+    Generováno jako součást podkladů k diplomové práci.
+  </p>
+</section>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#fce7f3',
+      primaryTextColor: '#1a1a2e',
+      primaryBorderColor: '#E6007E',
+      lineColor: '#6b7280',
+      secondaryColor: '#f3f4f6',
+      tertiaryColor: '#ffffff',
+      fontSize: '13px',
+    },
+    flowchart: { curve: 'basis', padding: 20 },
+    sequence: { actorMargin: 60 },
+  });
+</script>
+
+</body>
+</html>
