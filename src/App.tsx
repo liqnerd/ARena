@@ -115,7 +115,13 @@ function ShortcutHelp({ onClose }: { onClose: () => void }) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-[520px] max-w-[92vw] rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-float)]"
+        className="w-[520px] max-w-[92vw] rounded-2xl border border-[var(--glass-border)] p-6"
+        style={{
+          background: 'var(--glass-float)',
+          backdropFilter: 'var(--glass-blur-lg)',
+          WebkitBackdropFilter: 'var(--glass-blur-lg)',
+          boxShadow: 'var(--shadow-float-strong)',
+        }}
       >
         <div className="mb-4 flex items-center justify-between">
           <span className="text-[15px] font-semibold text-[var(--color-text-strong)]">

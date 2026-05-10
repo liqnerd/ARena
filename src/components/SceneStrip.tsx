@@ -11,20 +11,32 @@ export function SceneStrip({ onCollapse }: { onCollapse: () => void }) {
   const deleteScene = useEditor((s) => s.deleteScene);
 
   return (
-    <footer className="flex h-[110px] shrink-0 items-center gap-3 border-t border-[var(--color-border)] bg-[var(--color-panel)] px-4">
+    <footer
+      className="flex h-[88px] shrink-0 items-center gap-3 border-t border-[var(--color-border-soft)] px-4"
+      style={{
+        background: 'var(--glass-bar)',
+        backdropFilter: 'var(--glass-blur-md)',
+        WebkitBackdropFilter: 'var(--glass-blur-md)',
+      }}
+    >
       {scenes.map((scene, i) => {
         const active = scene.id === currentSceneId;
         const isStart = scene.id === startSceneId;
         return (
           <div key={scene.id} className="flex shrink-0 flex-col items-start gap-1">
             <div
-              className={`group relative h-[64px] w-[112px] cursor-pointer overflow-hidden rounded-lg border-2 transition ${
+              className={`group relative h-[54px] w-[96px] cursor-pointer overflow-hidden rounded-lg border-2 transition-all duration-150 ${
                 active
                   ? 'border-[var(--color-accent)]'
                   : 'border-[var(--color-border)] hover:border-[var(--color-text-dim)]'
               }`}
               onClick={() => setCurrentScene(scene.id)}
-              style={{ background: scene.background ?? '#ffffff' }}
+              style={{
+                background: scene.background ?? '#ffffff',
+                ...(active
+                  ? { boxShadow: '0 0 0 3px rgba(230,0,126,0.15), 0 2px 8px rgba(230,0,126,0.12)' }
+                  : {}),
+              }}
             >
               <ThumbnailGuides />
               {isStart && (
@@ -87,7 +99,11 @@ export function SceneStrip({ onCollapse }: { onCollapse: () => void }) {
       <button
         type="button"
         onClick={() => addScene()}
-        className="flex h-[64px] shrink-0 items-center gap-1.5 rounded-full bg-[var(--color-accent-soft)] px-4 text-[12px] font-medium text-[var(--color-accent)] transition hover:bg-[#E6007E] hover:text-[#ffffff]"
+        className="flex h-[54px] shrink-0 items-center gap-1.5 rounded-xl px-4 text-[12px] font-medium text-white transition hover:brightness-95"
+        style={{
+          background: 'var(--color-accent-gradient)',
+          boxShadow: '0 4px 16px rgba(230,0,126,0.25)',
+        }}
       >
         <span className="text-[14px] leading-none">+</span> New
       </button>

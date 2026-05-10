@@ -9,12 +9,12 @@ import {
 import { Stage, Layer, Rect, Line, Text, Group, Transformer } from 'react-konva';
 import type Konva from 'konva';
 import { useEditor, useCurrentScene } from '@/store/editor';
-import type { Asset, SceneObject, Template } from '@/types/project';
-import { computeSafeZone } from '@/types/project';
+import type { Guide, PersonHeightCm } from '@/store/editor';
+import type { Asset, SceneObject } from '@/types/project';
 import { newId } from '@/lib/factory';
 import { KonvaObject } from '@/components/canvas/KonvaObject';
 
-const GRID_PX = 100;
+const GRID_PX = 50;
 const MIN_ZOOM = 0.02;
 const MAX_ZOOM = 4;
 
@@ -51,6 +51,7 @@ export function Canvas2D() {
   const showGrid = useEditor((s) => s.view.showGrid);
   const showSegments = useEditor((s) => s.view.showSegments);
   const showSafeZone = useEditor((s) => s.view.showSafeZone);
+  const safeZonePersonHeight = useEditor((s) => s.view.safeZonePersonHeight);
   const zoom = useEditor((s) => s.view.zoom);
   const setZoom = useEditor((s) => s.setZoom);
   const panX = useEditor((s) => s.view.panX);
@@ -63,7 +64,12 @@ export function Canvas2D() {
   const updateObject = useEditor((s) => s.updateObject);
   const addObject = useEditor((s) => s.addObject);
   const pushHistory = useEditor((s) => s.pushHistory);
+  const guides = useEditor((s) => s.guides);
+  const addGuide = useEditor((s) => s.addGuide);
+  const updateGuide = useEditor((s) => s.updateGuide);
+  const removeGuide = useEditor((s) => s.removeGuide);
 
+  const outerRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const stageRef = useRef<Konva.Stage | null>(null);
   const transformerRef = useRef<Konva.Transformer | null>(null);
@@ -359,122 +365,297 @@ export function Canvas2D() {
     [scene],
   );
 
-  const segmentWidth = template.width / template.segments;
+  // Guide drag state: dragging a guide out of a ruler
+  const [guideDrag, setGuideDrag] = useState<{ axis: 'h' | 'v'; outerPos: number } | null>(null);
+  const panXRef = useRef(panX);
+  const panYRef = useRef(panY);
+  const zoomRef = useRef(zoom);
+  useEffect(() => { panXRef.current = panX; }, [panX]);
+  useEffect(() => { panYRef.current = panY; }, [panY]);
+  useEffect(() => { zoomRef.current = zoom; }, [zoom]);
+
+  const handleRulerMouseDown = useCallback((axis: 'h' | 'v') => (e: React.MouseEvent) => {
+    e.preventDefault();
+    const rect = outerRef.current!.getBoundingClientRect();
+    const RS = 20;
+
+    const getOuterPos = (me: MouseEvent | React.MouseEvent) =>
+      axis === 'h' ? me.clientY - rect.top : me.clientX - rect.left;
+
+    setGuideDrag({ axis, outerPos: getOuterPos(e) });
+
+    const onMove = (me: MouseEvent) => setGuideDrag({ axis, outerPos: getOuterPos(me) });
+
+    const onUp = (me: MouseEvent) => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      const outerX = me.clientX - rect.left;
+      const outerY = me.clientY - rect.top;
+      if (outerX > RS && outerY > RS) {
+        const innerX = outerX - RS;
+        const innerY = outerY - RS;
+        if (axis === 'h') {
+          addGuide('h', (innerY - panYRef.current) / zoomRef.current);
+        } else {
+          addGuide('v', (innerX - panXRef.current) / zoomRef.current);
+        }
+      }
+      setGuideDrag(null);
+    };
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }, [addGuide]);
+
+  // Snap function for object drag — returns Konva dragBoundFunc
+  const makeSnapBound = useCallback((obj: SceneObject) => {
+    if (!guides.length) return undefined;
+    return (absPos: { x: number; y: number }) => {
+      const wx = (absPos.x - panX) / zoom;
+      const wy = (absPos.y - panY) / zoom;
+      const threshold = 6 / zoom;
+      let nx = wx, ny = wy;
+      for (const g of guides) {
+        if (g.axis === 'v') {
+          if (Math.abs(nx - g.position) < threshold) nx = g.position;
+          else if (Math.abs(nx + obj.width - g.position) < threshold) nx = g.position - obj.width;
+          else if (Math.abs(nx + obj.width / 2 - g.position) < threshold) nx = g.position - obj.width / 2;
+        } else {
+          if (Math.abs(ny - g.position) < threshold) ny = g.position;
+          else if (Math.abs(ny + obj.height - g.position) < threshold) ny = g.position - obj.height;
+          else if (Math.abs(ny + obj.height / 2 - g.position) < threshold) ny = g.position - obj.height / 2;
+        }
+      }
+      return { x: nx * zoom + panX, y: ny * zoom + panY };
+    };
+  }, [guides, panX, panY, zoom]);
+
+  // Snap during resize — used as Transformer boundBoxFunc
+  const snapBoundBox = useCallback((
+    oldBox: { x: number; y: number; width: number; height: number; rotation: number },
+    newBox: { x: number; y: number; width: number; height: number; rotation: number },
+  ) => {
+    if (newBox.width < 4 || newBox.height < 4) return oldBox;
+    if (!guides.length || newBox.rotation !== 0) return newBox;
+
+    const THRESHOLD = 6; // screen px
+    const leftMoved = Math.abs(newBox.x - oldBox.x) > 0.5;
+    const topMoved  = Math.abs(newBox.y - oldBox.y) > 0.5;
+
+    let { x, y, width, height } = newBox;
+
+    for (const g of guides) {
+      if (g.axis !== 'v') continue;
+      const gAbs = g.position * zoom + panX;
+      if (leftMoved) {
+        if (Math.abs(x - gAbs) < THRESHOLD) { const r = x + width; x = gAbs; width = r - x; break; }
+      } else {
+        if (Math.abs(x + width - gAbs) < THRESHOLD) { width = gAbs - x; break; }
+      }
+    }
+
+    for (const g of guides) {
+      if (g.axis !== 'h') continue;
+      const gAbs = g.position * zoom + panY;
+      if (topMoved) {
+        if (Math.abs(y - gAbs) < THRESHOLD) { const b = y + height; y = gAbs; height = b - y; break; }
+      } else {
+        if (Math.abs(y + height - gAbs) < THRESHOLD) { height = gAbs - y; break; }
+      }
+    }
+
+    if (width < 4 || height < 4) return oldBox;
+    return { ...newBox, x, y, width, height };
+  }, [guides, panX, panY, zoom]);
+
+  const RS = 20; // ruler size px
 
   return (
     <div
-      ref={containerRef}
+      ref={outerRef}
       className="relative h-full w-full overflow-hidden"
-      onDrop={onContainerDrop}
-      onDragOver={onContainerDragOver}
       style={{ cursor: spacePan ? (panStateRef.current?.active ? 'grabbing' : 'grab') : 'default' }}
     >
       <DotPattern />
+
+      {/* Corner block */}
+      <div
+        className="pointer-events-none absolute left-0 top-0 z-20 border-b border-r border-[var(--color-border)]"
+        style={{ width: RS, height: RS, background: 'var(--color-panel-2)' }}
+      />
+
+      {/* Rulers */}
       {size.w > 0 && size.h > 0 && (
-        <Stage
-          ref={stageRef}
-          width={size.w}
-          height={size.h}
-          onWheel={onWheel}
-          onMouseDown={onStageMouseDown}
-          onMouseMove={onStageMouseMove}
-          onMouseUp={onStageMouseUp}
-        >
-          <Layer x={panX} y={panY} scaleX={zoom} scaleY={zoom}>
-            <Rect
-              name="canvas-bg"
-              x={0}
-              y={0}
-              width={template.width}
-              height={template.height}
-              fill={scene?.background ?? '#ffffff'}
-              shadowColor="rgba(0,0,0,0.45)"
-              shadowBlur={20}
-              shadowOpacity={1}
-              shadowOffset={{ x: 0, y: 8 }}
-              listening
-            />
-
-            {showGrid && (
-              <GridLayer
-                width={template.width}
-                height={template.height}
-                segmentWidth={segmentWidth}
-              />
-            )}
-
-            {showSafeZone && (
-              <SafeZoneLayer template={template} />
-            )}
-
-            {sortedObjects.map((obj) => (
-              <KonvaObject
-                key={obj.id}
-                obj={obj}
-                onSelect={onSelectObject}
-                onDragStart={onDragStart}
-                onDragMove={onDragMove}
-                onDragEnd={onDragEnd}
-                draggable={!spacePan}
-                registerNode={registerNode}
-              />
-            ))}
-
-            {showSegments && (
-              <SegmentLayer
-                width={template.width}
-                height={template.height}
-                segments={template.segments}
-              />
-            )}
-
-            <Transformer
-              ref={transformerRef}
-              rotateEnabled
-              keepRatio={false}
-              anchorSize={10}
-              anchorStroke="#ec4899"
-              anchorFill="#ffffff"
-              borderStroke="#ec4899"
-              borderDash={[4, 4]}
-              onTransformEnd={onTransformEnd}
-              boundBoxFunc={(oldBox, newBox) => {
-                if (newBox.width < 4 || newBox.height < 4) return oldBox;
-                return newBox;
-              }}
-            />
-
-            {marquee && (
-              <Rect
-                x={Math.min(marquee.x1, marquee.x2)}
-                y={Math.min(marquee.y1, marquee.y2)}
-                width={Math.abs(marquee.x2 - marquee.x1)}
-                height={Math.abs(marquee.y2 - marquee.y1)}
-                fill="rgba(236,72,153,0.12)"
-                stroke="rgba(236,72,153,0.9)"
-                strokeWidth={1.5 / zoom}
-                dash={[6 / zoom, 4 / zoom]}
-                listening={false}
-              />
-            )}
-          </Layer>
-        </Stage>
+        <>
+          <HorizontalRuler
+            length={size.w}
+            panX={panX}
+            zoom={zoom}
+            sceneWidth={template.width}
+            rulerSize={RS}
+          />
+          <VerticalRuler
+            length={size.h}
+            panY={panY}
+            zoom={zoom}
+            sceneHeight={template.height}
+            rulerSize={RS}
+          />
+          {/* Transparent drag zones on rulers */}
+          <div
+            style={{ position: 'absolute', top: 0, left: RS, right: 0, height: RS, zIndex: 25, cursor: 'row-resize' }}
+            onMouseDown={handleRulerMouseDown('h')}
+          />
+          <div
+            style={{ position: 'absolute', top: RS, left: 0, width: RS, bottom: 0, zIndex: 25, cursor: 'col-resize' }}
+            onMouseDown={handleRulerMouseDown('v')}
+          />
+        </>
       )}
-      {scene && scene.objects.length === 0 && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="rounded-lg border border-dashed border-[var(--color-border)] bg-[var(--color-panel)]/70 px-6 py-4 text-center text-[var(--color-text-dim)] backdrop-blur">
-            <div className="mb-1 text-[12px] font-semibold uppercase tracking-wider text-[var(--color-text-strong)]">
-              Empty scene
-            </div>
-            <div className="text-[11px] leading-snug">
-              Drag an asset from the library, or use the toolbar above to add
-              text / hotspot / shapes.
+
+      {/* Guide drag preview */}
+      {guideDrag && (
+        <div
+          className="pointer-events-none absolute z-30"
+          style={guideDrag.axis === 'h'
+            ? { top: guideDrag.outerPos, left: RS, right: 0, height: 1, background: 'rgba(0,192,255,0.9)' }
+            : { left: guideDrag.outerPos, top: RS, bottom: 0, width: 1, background: 'rgba(0,192,255,0.9)' }
+          }
+        />
+      )}
+
+      {/* Canvas area offset by ruler */}
+      <div
+        ref={containerRef}
+        className="absolute overflow-hidden"
+        style={{ top: RS, left: RS, right: 0, bottom: 0 }}
+        onDrop={onContainerDrop}
+        onDragOver={onContainerDragOver}
+      >
+        {size.w > 0 && size.h > 0 && (
+          <Stage
+            ref={stageRef}
+            width={size.w}
+            height={size.h}
+            onWheel={onWheel}
+            onMouseDown={onStageMouseDown}
+            onMouseMove={onStageMouseMove}
+            onMouseUp={onStageMouseUp}
+          >
+            <Layer x={panX} y={panY} scaleX={zoom} scaleY={zoom}>
+              <Rect
+                name="canvas-bg"
+                x={0}
+                y={0}
+                width={template.width}
+                height={template.height}
+                fill={scene?.background ?? '#ffffff'}
+                shadowColor="rgba(0,0,0,0.45)"
+                shadowBlur={20}
+                shadowOpacity={1}
+                shadowOffset={{ x: 0, y: 8 }}
+                listening
+              />
+
+              {sortedObjects.map((obj) => (
+                <KonvaObject
+                  key={obj.id}
+                  obj={obj}
+                  onSelect={onSelectObject}
+                  onDragStart={onDragStart}
+                  onDragMove={onDragMove}
+                  onDragEnd={onDragEnd}
+                  draggable={!spacePan}
+                  registerNode={registerNode}
+                  dragBoundFunc={makeSnapBound(obj)}
+                />
+              ))}
+
+              {showGrid && (
+                <GridLayer
+                  width={template.width}
+                  height={template.height}
+                />
+              )}
+
+              {showSafeZone && (
+                <SafeZoneLayer
+                  width={template.width}
+                  height={template.height}
+                  personHeight={safeZonePersonHeight}
+                />
+              )}
+
+              {showSegments && (
+                <SegmentLayer
+                  width={template.width}
+                  height={template.height}
+                  segments={template.segments}
+                />
+              )}
+
+              {/* Guides */}
+              {guides.map((g) => (
+                <GuideLine
+                  key={g.id}
+                  guide={g}
+                  zoom={zoom}
+                  panX={panX}
+                  panY={panY}
+                  sceneWidth={template.width}
+                  sceneHeight={template.height}
+                  onUpdate={updateGuide}
+                  onRemove={removeGuide}
+                />
+              ))}
+
+              <Transformer
+                ref={transformerRef}
+                rotateEnabled
+                keepRatio={false}
+                anchorSize={10}
+                anchorStroke="#ec4899"
+                anchorFill="#ffffff"
+                borderStroke="#ec4899"
+                borderDash={[4, 4]}
+                onTransformEnd={onTransformEnd}
+                boundBoxFunc={snapBoundBox}
+              />
+
+              {marquee && (
+                <Rect
+                  x={Math.min(marquee.x1, marquee.x2)}
+                  y={Math.min(marquee.y1, marquee.y2)}
+                  width={Math.abs(marquee.x2 - marquee.x1)}
+                  height={Math.abs(marquee.y2 - marquee.y1)}
+                  fill="rgba(236,72,153,0.12)"
+                  stroke="rgba(236,72,153,0.9)"
+                  strokeWidth={1.5 / zoom}
+                  dash={[6 / zoom, 4 / zoom]}
+                  listening={false}
+                />
+              )}
+            </Layer>
+          </Stage>
+        )}
+
+        {scene && scene.objects.length === 0 && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <div className="rounded-lg border border-dashed border-[var(--color-border)] bg-[var(--color-panel)]/70 px-6 py-4 text-center text-[var(--color-text-dim)] backdrop-blur">
+              <div className="mb-1 text-[12px] font-semibold uppercase tracking-wider text-[var(--color-text-strong)]">
+                Empty scene
+              </div>
+              <div className="text-[11px] leading-snug">
+                Drag an asset from the library, or use the toolbar above to add
+                text / hotspot / shapes.
+              </div>
             </div>
           </div>
+        )}
+
+        <div className="pointer-events-none absolute bottom-3 left-3 rounded bg-black/40 px-2 py-1 font-mono text-[10px] text-white/70">
+          2D unwrap · ctrl/⌘+wheel zoom · wheel pan · space+drag pan · ? help
         </div>
-      )}
-      <div className="pointer-events-none absolute bottom-3 left-3 rounded bg-black/40 px-2 py-1 font-mono text-[10px] text-white/70">
-        2D unwrap · ctrl/⌘+wheel zoom · wheel pan · space+drag pan · ? help
       </div>
     </div>
   );
@@ -483,22 +664,19 @@ export function Canvas2D() {
 function GridLayer({
   width,
   height,
-  segmentWidth,
 }: {
   width: number;
   height: number;
-  segmentWidth: number;
 }) {
   const lines: React.ReactNode[] = [];
+  // Continuous lines (no dash) to eliminate the cross-hatch "+" artifact
   for (let x = GRID_PX; x < width; x += GRID_PX) {
-    if (x % segmentWidth === 0) continue;
     lines.push(
       <Line
         key={`gv-${x}`}
         points={[x, 0, x, height]}
-        stroke="rgba(236,72,153,0.35)"
-        strokeWidth={2}
-        dash={[14, 10]}
+        stroke="rgba(236,72,153,0.06)"
+        strokeWidth={0.5}
         listening={false}
       />,
     );
@@ -508,9 +686,8 @@ function GridLayer({
       <Line
         key={`gh-${y}`}
         points={[0, y, width, y]}
-        stroke="rgba(236,72,153,0.35)"
-        strokeWidth={2}
-        dash={[14, 10]}
+        stroke="rgba(236,72,153,0.06)"
+        strokeWidth={0.5}
         listening={false}
       />,
     );
@@ -518,70 +695,61 @@ function GridLayer({
   return <Group listening={false}>{lines}</Group>;
 }
 
-function SafeZoneLayer({ template }: { template: Template }) {
-  const { width, height } = template;
-  const safe = computeSafeZone(template);
+// Zone boundaries (heights from floor in px, canvas height = 2450)
+const ZONE_DEFS: Record<PersonHeightCm, { noTextBottom: number; interactionTop: number; contentTop: number; noTextTop: number }> = {
+  110: { noTextBottom: 260,  interactionTop: 760,  contentTop: 1560, noTextTop: 2450 },
+  150: { noTextBottom: 660,  interactionTop: 1160, contentTop: 1960, noTextTop: 2450 },
+  170: { noTextBottom: 850,  interactionTop: 1350, contentTop: 2160, noTextTop: 2450 },
+  190: { noTextBottom: 1060, interactionTop: 1560, contentTop: 2360, noTextTop: 2450 },
+};
+
+function SafeZoneLayer({
+  width,
+  height,
+  personHeight,
+}: {
+  width: number;
+  height: number;
+  personHeight: PersonHeightCm;
+}) {
+  const z = ZONE_DEFS[personHeight];
+  // Convert heights-from-floor to canvas y (y=0 is top/ceiling, y=height is floor)
+  const yNoTextBottom = height - z.noTextBottom;  // canvas y of no_text_bottom top edge
+  const yInteraction  = height - z.interactionTop; // canvas y of interaction_zone top edge
+  const yContent      = height - z.contentTop;     // canvas y of content_zone top edge
+
+  const STROKE = 'rgba(236,72,153,0.6)';
+  const DASH: [number, number] = [16, 8];
+  const SW = 1.5;
+  const FONT = 'ui-monospace, monospace';
+  const FS = 32;
+  const LABEL_COLOR = 'rgba(236,72,153,0.9)';
+  const PAD = 40;
+
   return (
     <Group listening={false}>
-      <Rect
-        x={0}
-        y={0}
-        width={width}
-        height={safe.topPx}
-        fill="rgba(180,180,180,0.18)"
-      />
-      <Rect
-        x={0}
-        y={height - safe.bottomPx}
-        width={width}
-        height={safe.bottomPx}
-        fill="rgba(180,180,180,0.18)"
-      />
-      {safe.topPx > 60 && (
-        <Text
-          x={40}
-          y={Math.max(60, safe.topPx - 80)}
-          text="NO_TEXT_TOP"
-          fontFamily="ui-monospace, monospace"
-          fontSize={36}
-          fill="rgba(236,72,153,0.85)"
-        />
+      {/* Restricted zone fills — neutral gray (not pink) so content zone reads as white */}
+      <Rect x={0} y={0}            width={width} height={yContent}               fill="rgba(0,0,0,0.04)" />
+      <Rect x={0} y={yInteraction} width={width} height={yNoTextBottom - yInteraction} fill="rgba(0,0,0,0.025)" />
+      <Rect x={0} y={yNoTextBottom} width={width} height={height - yNoTextBottom} fill="rgba(0,0,0,0.04)" />
+
+      {/* Zone boundary dashed lines */}
+      <Line points={[0, yContent,      width, yContent]}      stroke={STROKE} strokeWidth={SW} dash={DASH} />
+      <Line points={[0, yInteraction,  width, yInteraction]}  stroke={STROKE} strokeWidth={SW} dash={DASH} />
+      <Line points={[0, yNoTextBottom, width, yNoTextBottom]} stroke={STROKE} strokeWidth={SW} dash={DASH} />
+
+      {/* Zone labels */}
+      {yContent > FS + PAD && (
+        <Text x={PAD} y={PAD} text="NO_TEXT_TOP" fontFamily={FONT} fontSize={FS} fill={LABEL_COLOR} />
       )}
-      {safe.bottomPx > 60 && (
-        <Text
-          x={40}
-          y={height - safe.bottomPx + 40}
-          text="NO_TEXT_BOTTOM"
-          fontFamily="ui-monospace, monospace"
-          fontSize={36}
-          fill="rgba(236,72,153,0.85)"
-        />
-      )}
-      <Line
-        points={[0, safe.eyeLevelPx, width, safe.eyeLevelPx]}
-        stroke="rgba(236,72,153,0.55)"
-        strokeWidth={2}
-        dash={[20, 12]}
-      />
-      <Text
-        x={40}
-        y={safe.eyeLevelPx - 44}
-        text={`EYE_LEVEL · viewer ${template.viewerHeightCm ?? 170}cm`}
-        fontFamily="ui-monospace, monospace"
-        fontSize={28}
-        fill="rgba(236,72,153,0.85)"
-      />
-      <Text
-        x={width / 2 - 200}
-        y={(safe.topPx + height - safe.bottomPx) / 2}
-        text="TEXT_SAFE_ZONE"
-        fontFamily="ui-monospace, monospace"
-        fontSize={36}
-        fill="rgba(140,140,140,0.9)"
-      />
+      <Text x={PAD} y={yContent + PAD}      text="CONTENT_ZONE"     fontFamily={FONT} fontSize={FS} fill={LABEL_COLOR} />
+      <Text x={PAD} y={yInteraction + PAD}  text="INTERACTION_ZONE" fontFamily={FONT} fontSize={FS} fill={LABEL_COLOR} />
+      <Text x={PAD} y={yNoTextBottom + PAD} text="NO_TEXT_BOTTOM"   fontFamily={FONT} fontSize={FS} fill={LABEL_COLOR} />
     </Group>
   );
 }
+
+const PANEL_MARGIN = 50; // safe-zone px on each side of a panel boundary
 
 function SegmentLayer({
   width,
@@ -592,31 +760,339 @@ function SegmentLayer({
   height: number;
   segments: number;
 }) {
-  const segmentWidth = width / segments;
+  const segW = width / segments;
+  const cols = segments * 2; // 12 equal columns for 6 segments
+  const colW = width / cols;
+  const colsPerSeg = 2;
+
+  const elements: React.ReactNode[] = [];
+
+  // ── Safe-zone gray fills: 50px band on each side of every panel boundary ──
+  // Left canvas edge band
+  elements.push(
+    <Rect key="margin-fill-left" x={0} y={0} width={PANEL_MARGIN} height={height} fill="rgba(0,0,0,0.05)" listening={false} />,
+  );
+  // Right canvas edge band
+  elements.push(
+    <Rect key="margin-fill-right" x={width - PANEL_MARGIN} y={0} width={PANEL_MARGIN} height={height} fill="rgba(0,0,0,0.05)" listening={false} />,
+  );
+  // Both sides of each internal panel boundary
+  for (let i = 1; i < segments; i++) {
+    const x = Math.round(segW * i);
+    elements.push(
+      <Rect key={`margin-fill-${i}l`} x={x - PANEL_MARGIN} y={0} width={PANEL_MARGIN} height={height} fill="rgba(0,0,0,0.05)" listening={false} />,
+      <Rect key={`margin-fill-${i}r`} x={x} y={0} width={PANEL_MARGIN} height={height} fill="rgba(0,0,0,0.05)" listening={false} />,
+    );
+  }
+
+  // ── 12-column midpoint dashed lines (odd multiples of W/12) ──────────────
+  // These fall exactly between each pair of adjacent panel boundaries.
+  for (let i = 1; i < cols; i++) {
+    if (i % colsPerSeg === 0) continue; // panel boundary — handled below
+    const x = Math.round(colW * i);
+    elements.push(
+      <Line
+        key={`col12-${i}`}
+        points={[x, 0, x, height]}
+        stroke="rgba(236,72,153,0.22)"
+        strokeWidth={1}
+        dash={[10, 8]}
+        listening={false}
+      />,
+    );
+  }
+
+  // ── Panel boundary solid lines ────────────────────────────────────────────
+  for (let i = 1; i < segments; i++) {
+    const x = Math.round(segW * i);
+    elements.push(
+      <Line
+        key={`seg-${i}`}
+        points={[x, 0, x, height]}
+        stroke="rgba(236,72,153,0.72)"
+        strokeWidth={1.5}
+        listening={false}
+      />,
+    );
+  }
+
+  // ── Panel edge safe-zone dashed lines (±50 px from each boundary + canvas edges) ──
+  // Use a Set to avoid duplicate x positions (e.g. if PANEL_MARGIN lines coincide).
+  const marginXs = new Set<number>([PANEL_MARGIN, width - PANEL_MARGIN]);
+  for (let i = 1; i < segments; i++) {
+    const x = Math.round(segW * i);
+    marginXs.add(x - PANEL_MARGIN);
+    marginXs.add(x + PANEL_MARGIN);
+  }
+  for (const mx of marginXs) {
+    if (mx <= 0 || mx >= width) continue;
+    elements.push(
+      <Line
+        key={`margin-${mx}`}
+        points={[mx, 0, mx, height]}
+        stroke="rgba(236,72,153,0.4)"
+        strokeWidth={1}
+        dash={[6, 6]}
+        listening={false}
+      />,
+    );
+  }
+
+  return <Group listening={false}>{elements}</Group>;
+}
+
+// ─── Guide Line ────────────────────────────────────────────────────────────
+
+function GuideLine({
+  guide,
+  zoom,
+  panX,
+  panY,
+  sceneWidth,
+  sceneHeight,
+  onUpdate,
+  onRemove,
+}: {
+  guide: Guide;
+  zoom: number;
+  panX: number;
+  panY: number;
+  sceneWidth: number;
+  sceneHeight: number;
+  onUpdate: (id: string, pos: number) => void;
+  onRemove: (id: string) => void;
+}) {
+  const SPAN = 20000;
+  const isV = guide.axis === 'v';
+  const points = isV
+    ? [0, -SPAN, 0, sceneHeight + SPAN]
+    : [-SPAN, 0, sceneWidth + SPAN, 0];
+
   return (
-    <Group listening={false}>
-      {Array.from({ length: segments }).map((_, i) => (
-        <Group key={`seg-${i}`}>
-          <Rect
-            x={i * segmentWidth}
-            y={0}
-            width={20}
-            height={height}
-            fill="rgba(236,72,153,0.85)"
-          />
-          <Text
-            x={i * segmentWidth + 30}
-            y={50}
-            text="100px"
-            fontFamily="ui-monospace, monospace"
-            fontSize={32}
-            fill="rgba(236,72,153,0.95)"
-          />
-        </Group>
-      ))}
-    </Group>
+    <Line
+      x={isV ? guide.position : 0}
+      y={isV ? 0 : guide.position}
+      points={points}
+      stroke="rgba(0,192,255,0.85)"
+      strokeWidth={1 / zoom}
+      hitStrokeWidth={10 / zoom}
+      listening
+      draggable
+      dragBoundFunc={(pos) =>
+        isV ? { x: pos.x, y: panY } : { x: panX, y: pos.y }
+      }
+      onDragEnd={(e) => {
+        const worldPos = isV ? e.target.x() : e.target.y();
+        onUpdate(guide.id, worldPos);
+        if (isV) e.target.y(0); else e.target.x(0);
+      }}
+      onDblClick={() => onRemove(guide.id)}
+      onMouseEnter={(e) => {
+        const stage = e.target.getStage();
+        if (stage) stage.container().style.cursor = isV ? 'ew-resize' : 'ns-resize';
+      }}
+      onMouseLeave={(e) => {
+        const stage = e.target.getStage();
+        if (stage) stage.container().style.cursor = '';
+      }}
+    />
   );
 }
+
+// ─── Rulers ────────────────────────────────────────────────────────────────
+
+const RULER_INTERVALS = [1, 2, 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000];
+
+function pickRulerInterval(zoom: number): number {
+  for (const iv of RULER_INTERVALS) {
+    if (iv * zoom >= 55) return iv;
+  }
+  return RULER_INTERVALS[RULER_INTERVALS.length - 1];
+}
+
+function drawHRuler(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  panX: number,
+  zoom: number,
+  sceneWidth: number,
+) {
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#f3f4f6';
+  ctx.fillRect(0, 0, w, h);
+
+  const iv = pickRulerInterval(zoom);
+  const worldLeft = -panX / zoom;
+  const worldRight = (w - panX) / zoom;
+  const first = Math.floor(worldLeft / iv) * iv;
+
+  ctx.font = '9px ui-sans-serif,system-ui,sans-serif';
+  ctx.textBaseline = 'top';
+  ctx.textAlign = 'left';
+
+  for (let wx = first; wx <= worldRight + iv; wx += iv) {
+    const sx = Math.round(wx * zoom + panX);
+    if (sx < -1 || sx > w + 1) continue;
+
+    ctx.fillStyle = '#c4c8d0';
+    ctx.fillRect(sx, h - 6, 1, 6);
+
+    const halfSx = Math.round((wx + iv / 2) * zoom + panX);
+    if (halfSx >= 0 && halfSx <= w) {
+      ctx.fillRect(halfSx, h - 3, 1, 3);
+    }
+
+    if (sx + 2 < w) {
+      ctx.fillStyle = '#8a8e98';
+      ctx.fillText(String(Math.round(wx)), sx + 2, 2);
+    }
+  }
+
+  // scene boundaries
+  const x0 = Math.round(panX);
+  const x1 = Math.round(sceneWidth * zoom + panX);
+  ctx.fillStyle = '#E6007E';
+  if (x0 >= 0 && x0 <= w) ctx.fillRect(x0, 0, 1, h);
+  if (x1 >= 0 && x1 <= w) ctx.fillRect(x1, 0, 1, h);
+
+  // border
+  ctx.fillStyle = '#e5e7eb';
+  ctx.fillRect(0, h - 1, w, 1);
+}
+
+function drawVRuler(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  panY: number,
+  zoom: number,
+  sceneHeight: number,
+) {
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#f3f4f6';
+  ctx.fillRect(0, 0, w, h);
+
+  const iv = pickRulerInterval(zoom);
+  const worldTop = -panY / zoom;
+  const worldBottom = (h - panY) / zoom;
+  const first = Math.floor(worldTop / iv) * iv;
+
+  ctx.font = '9px ui-sans-serif,system-ui,sans-serif';
+
+  for (let wy = first; wy <= worldBottom + iv; wy += iv) {
+    const sy = Math.round(wy * zoom + panY);
+    if (sy < -1 || sy > h + 1) continue;
+
+    ctx.fillStyle = '#c4c8d0';
+    ctx.fillRect(w - 6, sy, 6, 1);
+
+    const halfSy = Math.round((wy + iv / 2) * zoom + panY);
+    if (halfSy >= 0 && halfSy <= h) {
+      ctx.fillRect(w - 3, halfSy, 3, 1);
+    }
+
+    if (sy - 2 > 0) {
+      ctx.save();
+      ctx.fillStyle = '#8a8e98';
+      ctx.translate(w - 8, sy - 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.textBaseline = 'top';
+      ctx.textAlign = 'left';
+      ctx.fillText(String(Math.round(wy)), 0, 0);
+      ctx.restore();
+    }
+  }
+
+  // scene boundaries
+  const y0 = Math.round(panY);
+  const y1 = Math.round(sceneHeight * zoom + panY);
+  ctx.fillStyle = '#E6007E';
+  if (y0 >= 0 && y0 <= h) ctx.fillRect(0, y0, w, 1);
+  if (y1 >= 0 && y1 <= h) ctx.fillRect(0, y1, w, 1);
+
+  // border
+  ctx.fillStyle = '#e5e7eb';
+  ctx.fillRect(w - 1, 0, 1, h);
+}
+
+function HorizontalRuler({
+  length,
+  panX,
+  zoom,
+  sceneWidth,
+  rulerSize,
+}: {
+  length: number;
+  panX: number;
+  zoom: number;
+  sceneWidth: number;
+  rulerSize: number;
+}) {
+  const ref = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const c = ref.current;
+    if (!c || length <= 0) return;
+    const dpr = window.devicePixelRatio || 1;
+    c.width = length * dpr;
+    c.height = rulerSize * dpr;
+    c.style.width = `${length}px`;
+    c.style.height = `${rulerSize}px`;
+    const ctx = c.getContext('2d');
+    if (!ctx) return;
+    ctx.scale(dpr, dpr);
+    drawHRuler(ctx, length, rulerSize, panX, zoom, sceneWidth);
+  }, [length, panX, zoom, sceneWidth, rulerSize]);
+
+  return (
+    <canvas
+      ref={ref}
+      className="pointer-events-none absolute z-20"
+      style={{ top: 0, left: rulerSize }}
+    />
+  );
+}
+
+function VerticalRuler({
+  length,
+  panY,
+  zoom,
+  sceneHeight,
+  rulerSize,
+}: {
+  length: number;
+  panY: number;
+  zoom: number;
+  sceneHeight: number;
+  rulerSize: number;
+}) {
+  const ref = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const c = ref.current;
+    if (!c || length <= 0) return;
+    const dpr = window.devicePixelRatio || 1;
+    c.width = rulerSize * dpr;
+    c.height = length * dpr;
+    c.style.width = `${rulerSize}px`;
+    c.style.height = `${length}px`;
+    const ctx = c.getContext('2d');
+    if (!ctx) return;
+    ctx.scale(dpr, dpr);
+    drawVRuler(ctx, rulerSize, length, panY, zoom, sceneHeight);
+  }, [length, panY, zoom, sceneHeight, rulerSize]);
+
+  return (
+    <canvas
+      ref={ref}
+      className="pointer-events-none absolute z-20"
+      style={{ top: rulerSize, left: 0 }}
+    />
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────────────
 
 function DotPattern() {
   return (

@@ -19,6 +19,7 @@ type Props = {
   onDragEnd: (id: string, x: number, y: number) => void;
   draggable: boolean;
   registerNode: (id: string, node: Konva.Node | null) => void;
+  dragBoundFunc?: (pos: { x: number; y: number }) => { x: number; y: number };
 };
 
 const evtAdditive = (
@@ -47,7 +48,7 @@ export function KonvaObject(props: Props) {
 }
 
 function commonProps(p: Props) {
-  const { obj, onSelect, onDragStart, onDragMove, onDragEnd, draggable, registerNode } = p;
+  const { obj, onSelect, onDragStart, onDragMove, onDragEnd, draggable, registerNode, dragBoundFunc } = p;
   return {
     id: obj.id,
     name: 'scene-object',
@@ -60,6 +61,7 @@ function commonProps(p: Props) {
     visible: obj.visible,
     draggable: draggable && !obj.locked,
     listening: !obj.locked,
+    dragBoundFunc,
     onMouseDown: (e: Konva.KonvaEventObject<MouseEvent>) => {
       e.cancelBubble = true;
       onSelect(obj.id, evtAdditive(e));

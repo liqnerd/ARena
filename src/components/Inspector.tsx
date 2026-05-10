@@ -7,6 +7,81 @@ import type {
   VideoObjectProps,
 } from '@/types/project';
 import { InteractionsEditor } from '@/components/InteractionsEditor';
+import { useEffect, useRef, useState } from 'react';
+import { HexColorPicker } from 'react-colorful';
+
+const FONTS = [
+  { label: 'Inter', value: 'Inter, system-ui, sans-serif' },
+  { label: 'Roboto', value: 'Roboto, Arial, sans-serif' },
+  { label: 'Open Sans', value: '"Open Sans", sans-serif' },
+  { label: 'Montserrat', value: 'Montserrat, sans-serif' },
+  { label: 'Lato', value: 'Lato, sans-serif' },
+  { label: 'Poppins', value: 'Poppins, sans-serif' },
+  { label: 'Playfair Display', value: '"Playfair Display", serif' },
+  { label: 'Merriweather', value: 'Merriweather, serif' },
+  { label: 'Georgia', value: 'Georgia, serif' },
+  { label: 'Oswald', value: 'Oswald, sans-serif' },
+  { label: 'Raleway', value: 'Raleway, sans-serif' },
+  { label: 'Nunito', value: 'Nunito, sans-serif' },
+  { label: 'Source Code Pro', value: '"Source Code Pro", monospace' },
+  { label: 'Courier New', value: '"Courier New", monospace' },
+  { label: 'Arial Black', value: '"Arial Black", sans-serif' },
+];
+
+function FontSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const matched = FONTS.find((f) => f.value === value);
+  const displayLabel = matched ? matched.label : value.split(',')[0].replace(/"/g, '');
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative w-full">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-between rounded-full bg-[var(--color-panel-2)] px-3 py-1.5 text-[12px] text-[var(--color-text-strong)] outline-none hover:bg-[var(--color-panel-3)] focus:ring-1 focus:ring-[var(--color-accent)]"
+      >
+        <span style={{ fontFamily: value }}>{displayLabel}</span>
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="ml-1 shrink-0 opacity-50">
+          <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {open && (
+        <div
+          className="absolute left-0 top-full z-50 mt-1 w-full overflow-hidden rounded-xl border border-[var(--glass-border)]"
+          style={{
+            background: 'var(--glass-float)',
+            backdropFilter: 'var(--glass-blur-md)',
+            WebkitBackdropFilter: 'var(--glass-blur-md)',
+            boxShadow: 'var(--shadow-float-strong)',
+          }}
+        >
+          {FONTS.map((font) => (
+            <button
+              key={font.value}
+              type="button"
+              onClick={() => { onChange(font.value); setOpen(false); }}
+              className={`flex w-full items-center px-3 py-2 text-left text-[13px] hover:bg-[var(--color-panel-2)] ${value === font.value ? 'text-[#E6007E]' : 'text-[var(--color-text-strong)]'}`}
+              style={{ fontFamily: font.value }}
+            >
+              {font.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function Inspector() {
   const scene = useCurrentScene();
@@ -14,7 +89,14 @@ export function Inspector() {
   const selected = scene?.objects.find((o) => selectedIds.includes(o.id));
 
   return (
-    <aside className="flex w-[280px] shrink-0 flex-col border-l border-[var(--color-border)] bg-[var(--color-panel)]">
+    <aside
+      className="flex w-[300px] shrink-0 flex-col border-l border-[var(--color-border-soft)]"
+      style={{
+        background: 'var(--glass-panel)',
+        backdropFilter: 'var(--glass-blur-sm)',
+        WebkitBackdropFilter: 'var(--glass-blur-sm)',
+      }}
+    >
       <div className="flex-1 overflow-y-auto">
         {selectedIds.length > 1 ? (
           <MultiSelectInspector count={selectedIds.length} />
@@ -31,8 +113,12 @@ export function Inspector() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="border-b border-[var(--color-border-soft)] px-4 py-3">
-      <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-text-dim)]">
-        {title}
+      <div className="mb-2.5 flex items-center gap-2">
+        <div className="h-px flex-1 bg-[var(--color-border-soft)]" />
+        <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-dim)]">
+          {title}
+        </span>
+        <div className="h-px flex-1 bg-[var(--color-border-soft)]" />
       </div>
       <div className="flex flex-col gap-2">{children}</div>
     </div>
@@ -49,7 +135,7 @@ function Row({
   return (
     <div className="flex items-center gap-3">
       {label !== undefined && (
-        <span className="w-20 shrink-0 text-[12px] text-[var(--color-text)]">
+        <span className="w-16 shrink-0 text-[12px] text-[var(--color-text)]">
           {label}
         </span>
       )}
@@ -60,11 +146,13 @@ function Row({
 
 function NumberField({
   prefix,
+  suffix,
   value,
   onChange,
   step = 1,
 }: {
   prefix?: string;
+  suffix?: string;
   value: number;
   onChange: (v: number) => void;
   step?: number;
@@ -83,6 +171,11 @@ function NumberField({
         onChange={(e) => onChange(parseFloat(e.target.value || '0'))}
         className="arena-num w-full bg-transparent text-[12px] text-[var(--color-text-strong)] outline-none"
       />
+      {suffix && (
+        <span className="shrink-0 text-[10px] font-semibold text-[var(--color-text-dim)]">
+          {suffix}
+        </span>
+      )}
     </label>
   );
 }
@@ -150,29 +243,62 @@ function ColorSwatch({
   value: string;
   onChange: (v: string) => void;
 }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const hex = value.startsWith('#') ? value : `#${value}`;
+
   return (
-    <label className="flex w-full items-center gap-2 rounded-full bg-[var(--color-panel-2)] px-2 py-1 transition hover:bg-[var(--color-panel-3)]">
-      <span
-        className="h-4 w-4 shrink-0 rounded-full border border-[var(--color-border)]"
-        style={{ background: value }}
-      />
-      <input
-        type="text"
-        value={value.replace('#', '').toUpperCase()}
-        onChange={(e) => {
-          const v = e.target.value.startsWith('#') ? e.target.value : `#${e.target.value}`;
-          onChange(v);
-        }}
-        className="w-full bg-transparent text-[11px] uppercase text-[var(--color-text-strong)] outline-none"
-      />
-      <input
-        type="color"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="absolute opacity-0"
-        style={{ width: 0, height: 0 }}
-      />
-    </label>
+    <div ref={ref} className="relative w-full">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center gap-2 rounded-full bg-[var(--color-panel-2)] px-2 py-1 transition hover:bg-[var(--color-panel-3)]"
+      >
+        <span
+          className="h-4 w-4 shrink-0 rounded-full border border-[var(--color-border)]"
+          style={{ background: hex }}
+        />
+        <span className="w-full text-left text-[11px] uppercase tracking-wider text-[var(--color-text-strong)]">
+          {hex.replace('#', '')}
+        </span>
+      </button>
+      {open && (
+        <div
+          className="absolute right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-[var(--glass-border)] p-3"
+          style={{
+            background: 'var(--glass-float)',
+            backdropFilter: 'var(--glass-blur-lg)',
+            WebkitBackdropFilter: 'var(--glass-blur-lg)',
+            boxShadow: 'var(--shadow-float-strong)',
+          }}
+        >
+          <HexColorPicker color={hex} onChange={onChange} />
+          <div className="mt-2 flex items-center gap-2 rounded-full bg-[var(--color-panel-2)] px-3 py-1.5">
+            <span className="text-[11px] text-[var(--color-text-dim)]">#</span>
+            <input
+              type="text"
+              value={hex.replace('#', '').toUpperCase()}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/[^0-9a-fA-F]/g, '').slice(0, 6);
+                if (raw.length === 6) onChange(`#${raw}`);
+              }}
+              className="w-full bg-transparent text-[12px] uppercase tracking-widest text-[var(--color-text-strong)] outline-none"
+              spellCheck={false}
+            />
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -231,14 +357,14 @@ function ObjectInspector({ obj }: { obj: SceneObject }) {
             active={obj.locked}
             title={obj.locked ? 'Unlock' : 'Lock'}
           >
-            {obj.locked ? '🔒' : '🔓'}
+            {obj.locked ? <IcoLockClosed /> : <IcoLockOpen />}
           </IconButton>
           <IconButton
             onClick={() => commit({ visible: !obj.visible })}
             active={!obj.visible}
             title={obj.visible ? 'Hide' : 'Show'}
           >
-            {obj.visible ? '◉' : '◌'}
+            {obj.visible ? <IcoEyeOpen /> : <IcoEyeClosed />}
           </IconButton>
         </div>
       </div>
@@ -260,7 +386,7 @@ function ObjectInspector({ obj }: { obj: SceneObject }) {
             className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-panel-2)] text-[var(--color-text)] hover:bg-[var(--color-panel-3)]"
             title="Rotate -90°"
           >
-            ↺
+            <IcoRotateCCW />
           </button>
           <button
             type="button"
@@ -268,7 +394,7 @@ function ObjectInspector({ obj }: { obj: SceneObject }) {
             className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-panel-2)] text-[var(--color-text)] hover:bg-[var(--color-panel-3)]"
             title="Rotate 90°"
           >
-            ↻
+            <IcoRotateCW />
           </button>
         </Row>
       </Section>
@@ -291,33 +417,33 @@ function ObjectInspector({ obj }: { obj: SceneObject }) {
             type="button"
             onClick={() => bringToFront(obj.id)}
             title="Bring to front"
-            className="flex h-7 flex-1 items-center justify-center rounded-full bg-[var(--color-panel-2)] text-[12px] text-[var(--color-text)] hover:bg-[var(--color-panel-3)]"
+            className="flex h-7 flex-1 items-center justify-center rounded-full bg-[var(--color-panel-2)] text-[var(--color-text)] hover:bg-[var(--color-panel-3)]"
           >
-            ⇈
+            <IcoToFront />
           </button>
           <button
             type="button"
             onClick={() => bringForward(obj.id)}
             title="Bring forward"
-            className="flex h-7 flex-1 items-center justify-center rounded-full bg-[var(--color-panel-2)] text-[12px] text-[var(--color-text)] hover:bg-[var(--color-panel-3)]"
+            className="flex h-7 flex-1 items-center justify-center rounded-full bg-[var(--color-panel-2)] text-[var(--color-text)] hover:bg-[var(--color-panel-3)]"
           >
-            ↑
+            <IcoForward />
           </button>
           <button
             type="button"
             onClick={() => sendBackward(obj.id)}
             title="Send backward"
-            className="flex h-7 flex-1 items-center justify-center rounded-full bg-[var(--color-panel-2)] text-[12px] text-[var(--color-text)] hover:bg-[var(--color-panel-3)]"
+            className="flex h-7 flex-1 items-center justify-center rounded-full bg-[var(--color-panel-2)] text-[var(--color-text)] hover:bg-[var(--color-panel-3)]"
           >
-            ↓
+            <IcoBackward />
           </button>
           <button
             type="button"
             onClick={() => sendToBack(obj.id)}
             title="Send to back"
-            className="flex h-7 flex-1 items-center justify-center rounded-full bg-[var(--color-panel-2)] text-[12px] text-[var(--color-text)] hover:bg-[var(--color-panel-3)]"
+            className="flex h-7 flex-1 items-center justify-center rounded-full bg-[var(--color-panel-2)] text-[var(--color-text)] hover:bg-[var(--color-panel-3)]"
           >
-            ⇊
+            <IcoToBack />
           </button>
         </Row>
       </Section>
@@ -406,10 +532,11 @@ function TypeSpecific({ obj }: { obj: SceneObject }) {
           className="h-20 w-full resize-none rounded-xl bg-[var(--color-panel-2)] px-3 py-2 text-[12px] text-[var(--color-text)] outline-none focus:bg-[var(--color-panel)] focus:ring-1 focus:ring-[var(--color-accent)]"
         />
         <Row label="Font">
-          <TextField value={props.fontFamily} onChange={(v) => patch({ fontFamily: v })} />
+          <FontSelect value={props.fontFamily} onChange={(v) => { pushHistory(); patch({ fontFamily: v }); }} />
         </Row>
         <Row label="Size">
           <NumberField
+            prefix="sz"
             value={props.fontSize}
             onChange={(v) => {
               pushHistory();
@@ -417,7 +544,7 @@ function TypeSpecific({ obj }: { obj: SceneObject }) {
             }}
           />
           <NumberField
-            prefix="W"
+            prefix="wt"
             value={props.fontWeight}
             onChange={(v) => {
               pushHistory();
@@ -436,23 +563,45 @@ function TypeSpecific({ obj }: { obj: SceneObject }) {
         </Row>
         <Row label="Align">
           <div className="flex w-full gap-1">
-            {(['left', 'center', 'right'] as const).map((a) => (
-              <button
-                key={a}
-                type="button"
-                onClick={() => {
-                  pushHistory();
-                  patch({ align: a });
-                }}
-                className={`flex-1 rounded-full px-2 py-1 text-[11px] font-medium transition ${
-                  props.align === a
-                    ? 'bg-[#E6007E] text-[#ffffff]'
-                    : 'bg-[var(--color-panel-2)] text-[var(--color-text)] hover:bg-[var(--color-panel-3)]'
-                }`}
-              >
-                {a[0].toUpperCase() + a.slice(1)}
-              </button>
-            ))}
+            {(['left', 'center', 'right'] as const).map((a) => {
+              const active = props.align === a;
+              const fill = active ? '#ffffff' : 'var(--color-text)';
+              return (
+                <button
+                  key={a}
+                  type="button"
+                  title={a[0].toUpperCase() + a.slice(1)}
+                  onClick={() => { pushHistory(); patch({ align: a }); }}
+                  className={`flex flex-1 items-center justify-center rounded-full py-1.5 transition ${
+                    active
+                      ? 'bg-[#E6007E]'
+                      : 'bg-[var(--color-panel-2)] hover:bg-[var(--color-panel-3)]'
+                  }`}
+                >
+                  {a === 'left' && (
+                    <svg width="16" height="16" viewBox="0 0 16 16">
+                      <rect x="1" y="2" width="1.5" height="12" rx="0.75" fill={fill}/>
+                      <rect x="3.5" y="3.5" width="9" height="2.5" rx="1" fill={fill}/>
+                      <rect x="3.5" y="10" width="6" height="2.5" rx="1" fill={fill}/>
+                    </svg>
+                  )}
+                  {a === 'center' && (
+                    <svg width="16" height="16" viewBox="0 0 16 16">
+                      <rect x="7.25" y="2" width="1.5" height="12" rx="0.75" fill={fill}/>
+                      <rect x="3" y="3.5" width="10" height="2.5" rx="1" fill={fill}/>
+                      <rect x="4.5" y="10" width="7" height="2.5" rx="1" fill={fill}/>
+                    </svg>
+                  )}
+                  {a === 'right' && (
+                    <svg width="16" height="16" viewBox="0 0 16 16">
+                      <rect x="13.5" y="2" width="1.5" height="12" rx="0.75" fill={fill}/>
+                      <rect x="3.5" y="3.5" width="9" height="2.5" rx="1" fill={fill}/>
+                      <rect x="5.5" y="10" width="7" height="2.5" rx="1" fill={fill}/>
+                    </svg>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </Row>
       </Section>
@@ -482,6 +631,7 @@ function TypeSpecific({ obj }: { obj: SceneObject }) {
                 pushHistory();
                 patch({ cornerRadius: Math.max(0, v) });
               }}
+              suffix="px"
             />
           </Row>
         )}
@@ -564,6 +714,98 @@ function TypeSpecific({ obj }: { obj: SceneObject }) {
   return null;
 }
 
+function IcoLockClosed() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="4" y="11" width="16" height="10" rx="2" />
+      <path d="M8 11V7a4 4 0 018 0v4" />
+    </svg>
+  );
+}
+
+function IcoLockOpen() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="4" y="11" width="16" height="10" rx="2" />
+      <path d="M8 11V7a4 4 0 017.5-2" />
+    </svg>
+  );
+}
+
+function IcoEyeOpen() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function IcoEyeClosed() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+      <path d="M3 3l18 18M10.5 6.2A10 10 0 0112 6c6.5 0 10 7 10 7a17 17 0 01-3 3.6M6.6 6.6A17 17 0 002 12s3.5 7 10 7a10 10 0 005-1.4" />
+      <path d="M9.9 9.9a3 3 0 004.2 4.2" />
+    </svg>
+  );
+}
+
+function IcoRotateCCW() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 12a9 9 0 109-9H3" />
+      <path d="M3 3v6h6" />
+    </svg>
+  );
+}
+
+function IcoRotateCW() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12a9 9 0 11-9-9h9" />
+      <path d="M21 3v6h-6" />
+    </svg>
+  );
+}
+
+function IcoToFront() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="19" x2="12" y2="5" />
+      <polyline points="5 12 12 5 19 12" />
+      <line x1="5" y1="21" x2="19" y2="21" />
+    </svg>
+  );
+}
+
+function IcoForward() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="19" x2="12" y2="5" />
+      <polyline points="5 12 12 5 19 12" />
+    </svg>
+  );
+}
+
+function IcoBackward() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <polyline points="19 12 12 19 5 12" />
+    </svg>
+  );
+}
+
+function IcoToBack() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <polyline points="19 12 12 19 5 12" />
+      <line x1="5" y1="3" x2="19" y2="3" />
+    </svg>
+  );
+}
+
 function SceneInspector() {
   const scene = useCurrentScene();
   const renameScene = useEditor((s) => s.renameScene);
@@ -621,8 +863,6 @@ function SceneInspector() {
         />
       </Section>
 
-      <ProjectionSettings />
-
       <div className="px-4 py-4 text-[11px] leading-snug text-[var(--color-text-dim)]">
         Select an object to edit it. Drag from assets or use the toolbar above the canvas.
       </div>
@@ -630,69 +870,3 @@ function SceneInspector() {
   );
 }
 
-function ProjectionSettings() {
-  const template = useEditor((s) => s.project.template);
-  const updateTemplate = useEditor((s) => s.updateTemplate);
-
-  const projection = template.projectionHeightCm ?? 250;
-  const viewer = template.viewerHeightCm ?? 170;
-  const radius = template.safeRadiusCm ?? 60;
-
-  return (
-    <Section title="Projection · safe zone">
-      <Row label="Height">
-        <NumberField
-          prefix="cm"
-          value={projection}
-          onChange={(v) => updateTemplate({ projectionHeightCm: Math.max(50, v) })}
-        />
-      </Row>
-      <Row label="Viewer">
-        <NumberField
-          prefix="cm"
-          value={viewer}
-          onChange={(v) =>
-            updateTemplate({
-              viewerHeightCm: Math.max(40, Math.min(v, projection)),
-            })
-          }
-        />
-      </Row>
-      <Row label="Radius">
-        <NumberField
-          prefix="cm"
-          value={radius}
-          onChange={(v) => updateTemplate({ safeRadiusCm: Math.max(10, v) })}
-        />
-      </Row>
-      <div className="flex flex-wrap gap-1 pt-1">
-        {(
-          [
-            ['Adult', 170],
-            ['Teen', 150],
-            ['Child', 110],
-            ['Toddler', 90],
-          ] as const
-        ).map(([label, h]) => (
-          <button
-            key={label}
-            type="button"
-            onClick={() => updateTemplate({ viewerHeightCm: h })}
-            style={
-              viewer === h
-                ? { background: '#E6007E', color: '#ffffff' }
-                : undefined
-            }
-            className={`rounded-full px-2.5 py-1 text-[10px] font-medium transition ${
-              viewer === h
-                ? ''
-                : 'bg-[var(--color-panel-2)] text-[var(--color-text-dim)] hover:bg-[var(--color-panel-3)]'
-            }`}
-          >
-            {label} {h}
-          </button>
-        ))}
-      </div>
-    </Section>
-  );
-}

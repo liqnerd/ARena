@@ -21,8 +21,22 @@
   --color-segment: rgba(230, 0, 126, 0.85);
   --shadow-pop: 0 1px 2px rgba(15, 17, 22, 0.04), 0 4px 16px rgba(15, 17, 22, 0.06);
   --shadow-float: 0 2px 4px rgba(15, 17, 22, 0.06), 0 12px 32px rgba(15, 17, 22, 0.08);
+  --shadow-bar: 0 1px 0 rgba(0,0,0,0.05), 0 4px 24px rgba(0,0,0,0.04);
+  --shadow-panel: 2px 0 16px rgba(0,0,0,0.04);
+  --shadow-float-strong: 0 8px 40px rgba(0,0,0,0.10), 0 1px 0 rgba(255,255,255,0.9) inset;
   --font-sans: 'Aspekta', 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'Aspekta', ui-monospace, 'JetBrains Mono', Consolas, monospace;
+  /* glassmorphism */
+  --glass-panel: rgba(255, 255, 255, 0.82);
+  --glass-bar:   rgba(255, 255, 255, 0.88);
+  --glass-float: rgba(255, 255, 255, 0.94);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-blur-sm: blur(12px);
+  --glass-blur-md: blur(20px);
+  --glass-blur-lg: blur(32px);
+  /* accent extras */
+  --color-accent-gradient: linear-gradient(135deg, #E6007E 0%, #FF5BAA 100%);
+  --color-accent-glow: 0 0 0 3px rgba(230, 0, 126, 0.12);
 }
 
 html,
@@ -123,6 +137,13 @@ input[type='range'].arena-slider::-moz-range-thumb {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
+/* canvas dot-grid background */
+.canvas-bg {
+  background-color: var(--color-canvas);
+  background-image: radial-gradient(circle, rgba(0,0,0,0.055) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
 /* number input cleanup */
 .arena-num::-webkit-inner-spin-button,
 .arena-num::-webkit-outer-spin-button {
@@ -131,4 +152,27 @@ input[type='range'].arena-slider::-moz-range-thumb {
 }
 .arena-num {
   -moz-appearance: textfield;
+}
+
+/* react-colorful overrides */
+.react-colorful {
+  width: 220px !important;
+  height: 180px !important;
+  border-radius: 10px !important;
+  gap: 10px !important;
+}
+.react-colorful__saturation {
+  border-radius: 8px !important;
+  flex: 1 !important;
+}
+.react-colorful__hue {
+  height: 12px !important;
+  border-radius: 999px !important;
+}
+.react-colorful__saturation-pointer,
+.react-colorful__hue-pointer {
+  width: 16px !important;
+  height: 16px !important;
+  border-width: 2px !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25) !important;
 }

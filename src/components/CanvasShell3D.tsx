@@ -8,9 +8,9 @@ import { renderSceneToCanvas } from '@/lib/renderScene';
 
 export function CanvasShell3D({ scene }: { scene: Scene | undefined }) {
   return (
-    <div className="relative h-full w-full bg-[var(--color-bg)]">
+    <div className="relative h-full w-full bg-[var(--color-canvas)]">
       <Canvas camera={{ position: [0, 1.4, 6.5], fov: 40 }}>
-        <color attach="background" args={['#0f1014']} />
+        <color attach="background" args={['#f7f7f9']} />
         <ambientLight intensity={1.05} />
         <Suspense fallback={null}>
           <Cylinder scene={scene} />

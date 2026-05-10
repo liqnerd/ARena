@@ -31,8 +31,9 @@ async function loadCachedImage(
 }
 
 export type RenderOptions = {
-  width?: number; // pixel width of output canvas
+  width?: number;
   showGuides?: boolean;
+  skipVideoObjects?: boolean;
 };
 
 export async function renderSceneToCanvas(
@@ -82,27 +83,29 @@ export async function renderSceneToCanvas(
           drawPlaceholder(ctx, w, h, obj.type.toUpperCase());
         }
       } else if (obj.type === 'video') {
-        const props = obj.props as VideoObjectProps;
-        ctx.fillStyle = '#0f1014';
-        ctx.fillRect(0, 0, w, h);
-        ctx.strokeStyle = 'rgba(236,72,153,0.85)';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(0, 0, w, h);
-        if (props.posterSrc) {
-          // skip — posterSrc not loaded synchronously here
+        if (!opts.skipVideoObjects) {
+          const props = obj.props as VideoObjectProps;
+          ctx.fillStyle = '#0f1014';
+          ctx.fillRect(0, 0, w, h);
+          ctx.strokeStyle = 'rgba(236,72,153,0.85)';
+          ctx.lineWidth = 3;
+          ctx.strokeRect(0, 0, w, h);
+          if (props.posterSrc) {
+            // skip — posterSrc not loaded synchronously here
+          }
+          ctx.fillStyle = 'rgba(236,72,153,0.85)';
+          ctx.beginPath();
+          ctx.arc(w / 2, h / 2, Math.min(w, h) * 0.12, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          const r = Math.min(w, h) * 0.05;
+          ctx.moveTo(w / 2 - r, h / 2 - r * 1.5);
+          ctx.lineTo(w / 2 - r, h / 2 + r * 1.5);
+          ctx.lineTo(w / 2 + r * 1.5, h / 2);
+          ctx.closePath();
+          ctx.fill();
         }
-        ctx.fillStyle = 'rgba(236,72,153,0.85)';
-        ctx.beginPath();
-        ctx.arc(w / 2, h / 2, Math.min(w, h) * 0.12, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        const r = Math.min(w, h) * 0.05;
-        ctx.moveTo(w / 2 - r, h / 2 - r * 1.5);
-        ctx.lineTo(w / 2 - r, h / 2 + r * 1.5);
-        ctx.lineTo(w / 2 + r * 1.5, h / 2);
-        ctx.closePath();
-        ctx.fill();
       } else if (obj.type === 'text') {
         const props = obj.props as TextObjectProps;
         ctx.fillStyle = props.color;

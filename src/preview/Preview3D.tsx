@@ -1,11 +1,12 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { Canvas, useThree } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useEditor } from '@/store/editor';
 import type { Scene, Template } from '@/types/project';
 import { renderSceneToCanvas } from '@/lib/renderScene';
 import { usePreviewRuntime } from '@/preview/usePreviewRuntime';
 import { pickObjectAt } from '@/preview/pick';
+import { useVideoElements } from '@/preview/useVideoElements';
 
 const RADIUS = 2.5;
 
@@ -31,7 +32,7 @@ export function Preview3D() {
   const [hoverId, setHoverId] = useState<string | null>(null);
 
   return (
-    <div className="relative flex h-full w-full flex-col bg-[#0a0a0e]">
+    <div className="relative flex h-full w-full flex-col bg-[#f7f7f9]">
       <div className="flex h-9 items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-panel)] px-3">
         <div className="flex items-center gap-2">
           <span className="rounded bg-[var(--color-accent)] px-2 py-0.5 text-[10px] font-semibold text-white">
@@ -78,7 +79,7 @@ export function Preview3D() {
           camera={{ position: [0, 0, 0], fov: 75, near: 0.01, far: 100 }}
           dpr={[1, 2]}
         >
-          <color attach="background" args={['#0a0a0e']} />
+          <color attach="background" args={['#f7f7f9']} />
           <ambientLight intensity={1.2} />
           <Suspense fallback={null}>
             <Cylinder scene={liveScene} template={template} />
@@ -111,7 +112,7 @@ function Cylinder({
   template: Template;
 }) {
   const height = (template.height / template.width) * (Math.PI * 2 * RADIUS);
-  const texture = useLiveTexture(scene, template);
+  const texture = useLiveTextureWithVideo(scene, template);
   return (
     <mesh>
       <cylinderGeometry args={[RADIUS, RADIUS, height, 128, 1, true]} />
@@ -131,42 +132,96 @@ function applyInsideTextureFlip(tex: THREE.Texture) {
   tex.offset.x = 1;
 }
 
-function useLiveTexture(scene: Scene | undefined, template: Template) {
-  const initial = useMemo(() => {
+function useLiveTextureWithVideo(scene: Scene | undefined, template: Template) {
+  const targetWidth = 2048;
+  const targetHeight = Math.round(targetWidth * (template.height / template.width));
+  const sx = targetWidth / template.width;
+  const sy = targetHeight / template.height;
+
+  // Composite canvas — updated every frame when videos are present
+  const compositeCanvas = useMemo(() => {
     const c = document.createElement('canvas');
-    c.width = 16;
-    c.height = 16;
+    c.width = targetWidth;
+    c.height = targetHeight;
+    return c;
+  }, [targetWidth, targetHeight]);
+
+  // CanvasTexture wrapping the composite canvas
+  const texRef = useRef<THREE.CanvasTexture | null>(null);
+  const [texture, setTexture] = useState<THREE.CanvasTexture>(() => {
+    const c = document.createElement('canvas');
+    c.width = 16; c.height = 16;
     const ctx = c.getContext('2d');
-    if (ctx) {
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, 16, 16);
-    }
-    const tex = new THREE.CanvasTexture(c);
+    if (ctx) { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 16, 16); }
+    const t = new THREE.CanvasTexture(c);
+    applyInsideTextureFlip(t);
+    return t;
+  });
+
+  useEffect(() => {
+    const tex = new THREE.CanvasTexture(compositeCanvas);
     applyInsideTextureFlip(tex);
-    return tex;
-  }, []);
-  const [texture, setTexture] = useState<THREE.CanvasTexture>(initial);
+    texRef.current = tex;
+    setTexture((prev) => { prev.dispose(); return tex; });
+    return () => { tex.dispose(); };
+  }, [compositeCanvas]);
+
+  // Base canvas: static render of the scene without video objects
+  const baseRef = useRef<HTMLCanvasElement | null>(null);
+  const dirtyRef = useRef(true);
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      const canvas = await renderSceneToCanvas(scene, template, {
-        width: 2048,
-        showGuides: false,
-      });
+    dirtyRef.current = true;
+    renderSceneToCanvas(scene, template, {
+      width: targetWidth,
+      showGuides: false,
+      skipVideoObjects: true,
+    }).then((canvas) => {
       if (cancelled) return;
-      const tex = new THREE.CanvasTexture(canvas);
-      applyInsideTextureFlip(tex);
-      tex.needsUpdate = true;
-      setTexture((prev) => {
-        prev.dispose();
-        return tex;
-      });
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [scene, template]);
+      baseRef.current = canvas;
+      dirtyRef.current = true;
+    });
+    return () => { cancelled = true; };
+  }, [scene, template, targetWidth]);
+
+  // Video elements pool (keyed by object id)
+  const videoMap = useVideoElements(scene?.objects ?? []);
+  const sceneRef = useRef(scene);
+  sceneRef.current = scene;
+
+  const hasVideos = (scene?.objects ?? []).some((o) => o.type === 'video' && o.visible);
+
+  useFrame(() => {
+    const tex = texRef.current;
+    const base = baseRef.current;
+    if (!tex || !base) return;
+    if (!dirtyRef.current && !hasVideos) return;
+
+    const ctx = compositeCanvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.drawImage(base, 0, 0);
+
+    const currentScene = sceneRef.current;
+    if (currentScene) {
+      const sorted = [...currentScene.objects].sort((a, b) => a.zIndex - b.zIndex);
+      for (const obj of sorted) {
+        if (obj.type !== 'video' || !obj.visible) continue;
+        const vid = videoMap.get(obj.id);
+        if (!vid || vid.readyState < 2) continue;
+        ctx.save();
+        ctx.globalAlpha = obj.opacity;
+        ctx.translate(obj.x * sx, obj.y * sy);
+        if (obj.rotation) ctx.rotate((obj.rotation * Math.PI) / 180);
+        ctx.drawImage(vid, 0, 0, obj.width * sx, obj.height * sy);
+        ctx.restore();
+      }
+    }
+
+    tex.needsUpdate = true;
+    dirtyRef.current = false;
+  });
 
   return texture;
 }

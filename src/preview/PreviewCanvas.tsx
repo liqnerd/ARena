@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useEditor } from '@/store/editor';
-import type { Scene } from '@/types/project';
+import type { Scene, SceneObject, VideoObjectProps } from '@/types/project';
 import { renderSceneToCanvas } from '@/lib/renderScene';
 import { usePreviewRuntime } from '@/preview/usePreviewRuntime';
 import { pickObjectAt } from '@/preview/pick';
+import { getAssetObjectUrl } from '@/lib/assets';
 
 export function PreviewCanvas() {
   const template = useEditor((s) => s.project.template);
@@ -84,7 +85,7 @@ export function PreviewCanvas() {
   );
 
   return (
-    <div className="relative flex h-full w-full flex-col bg-[#0a0a0e]">
+    <div className="relative flex h-full w-full flex-col bg-[var(--color-canvas)]">
       <div className="flex h-9 items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-panel)] px-3">
         <div className="flex items-center gap-2">
           <span className="rounded bg-[var(--color-accent)] px-2 py-0.5 text-[10px] font-semibold text-white">
@@ -131,14 +132,24 @@ export function PreviewCanvas() {
         style={{ cursor: hoverId ? 'pointer' : 'default' }}
       >
         {size.w > 0 && (
-          <RasterCanvas
-            scene={liveScene}
-            template={template}
-            offsetX={offsetX}
-            offsetY={offsetY}
-            cw={cw}
-            ch={ch}
-          />
+          <>
+            <RasterCanvas
+              scene={liveScene}
+              template={template}
+              offsetX={offsetX}
+              offsetY={offsetY}
+              cw={cw}
+              ch={ch}
+            />
+            {liveScene && (
+              <VideoOverlay
+                objects={liveScene.objects}
+                fitScale={fitScale}
+                offsetX={offsetX}
+                offsetY={offsetY}
+              />
+            )}
+          </>
         )}
       </div>
     </div>
@@ -168,6 +179,7 @@ function RasterCanvas({
       const c = await renderSceneToCanvas(scene, template, {
         width: 2048,
         showGuides: false,
+        skipVideoObjects: true,
       });
       if (cancelled) return;
       setDataUrl(c.toDataURL('image/png'));
@@ -191,5 +203,85 @@ function RasterCanvas({
         />
       )}
     </div>
+  );
+}
+
+function VideoOverlay({
+  objects,
+  fitScale,
+  offsetX,
+  offsetY,
+}: {
+  objects: SceneObject[];
+  fitScale: number;
+  offsetX: number;
+  offsetY: number;
+}) {
+  const videoObjs = objects
+    .filter((o) => o.type === 'video' && o.visible)
+    .sort((a, b) => a.zIndex - b.zIndex);
+
+  return (
+    <>
+      {videoObjs.map((obj) => (
+        <VideoElement
+          key={obj.id}
+          obj={obj}
+          fitScale={fitScale}
+          offsetX={offsetX}
+          offsetY={offsetY}
+        />
+      ))}
+    </>
+  );
+}
+
+function VideoElement({
+  obj,
+  fitScale,
+  offsetX,
+  offsetY,
+}: {
+  obj: SceneObject;
+  fitScale: number;
+  offsetX: number;
+  offsetY: number;
+}) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const props = obj.props as VideoObjectProps;
+
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    let cancelled = false;
+    getAssetObjectUrl(props.assetId).then((url) => {
+      if (cancelled || !url || !ref.current) return;
+      ref.current.src = url;
+      ref.current.play().catch(() => {});
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [props.assetId]);
+
+  return (
+    <video
+      ref={ref}
+      muted
+      loop
+      playsInline
+      style={{
+        position: 'absolute',
+        left: offsetX + obj.x * fitScale,
+        top: offsetY + obj.y * fitScale,
+        width: obj.width * fitScale,
+        height: obj.height * fitScale,
+        opacity: obj.opacity,
+        pointerEvents: 'none',
+        objectFit: 'fill',
+        transform: obj.rotation ? `rotate(${obj.rotation}deg)` : undefined,
+        transformOrigin: '0 0',
+      }}
+    />
   );
 }

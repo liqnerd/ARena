@@ -74,7 +74,15 @@ export function ProjectPicker({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="w-[640px] max-w-[92vw] rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] shadow-2xl">
+      <div
+        className="w-[640px] max-w-[92vw] rounded-2xl border border-[var(--glass-border)]"
+        style={{
+          background: 'var(--glass-float)',
+          backdropFilter: 'var(--glass-blur-lg)',
+          WebkitBackdropFilter: 'var(--glass-blur-lg)',
+          boxShadow: 'var(--shadow-float-strong)',
+        }}
+      >
         <div className="flex items-center justify-between border-b border-[var(--color-border-soft)] px-5 py-3">
           <div className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded bg-[var(--color-accent)] text-[12px] font-semibold text-white">

@@ -48,7 +48,15 @@ export function Toolbar() {
   const addObject = useEditor((s) => s.addObject);
 
   return (
-    <div className="pointer-events-none absolute top-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-0.5 rounded-full border border-[var(--color-border)] bg-[var(--color-panel)] p-1 shadow-[var(--shadow-pop)]">
+    <div
+      className="pointer-events-none absolute top-[28px] left-1/2 z-10 flex -translate-x-1/2 items-center gap-0.5 rounded-full border border-[var(--glass-border)] p-1"
+      style={{
+        background: 'var(--glass-float)',
+        backdropFilter: 'var(--glass-blur-md)',
+        WebkitBackdropFilter: 'var(--glass-blur-md)',
+        boxShadow: 'var(--shadow-float-strong)',
+      }}
+    >
       {TOOLS.map((t) => (
         <button
           key={t.tool}

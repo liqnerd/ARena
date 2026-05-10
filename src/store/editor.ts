@@ -5,13 +5,18 @@ import { createProject, createScene, newId } from '@/lib/factory';
 
 export type ViewMode = '2d' | '3d';
 
+export type Guide = { id: string; axis: 'h' | 'v'; position: number };
+
 export type SaveState = 'saved' | 'saving' | 'unsaved';
+
+export type PersonHeightCm = 110 | 150 | 170 | 190;
 
 export type ViewSettings = {
   mode: ViewMode;
   showGrid: boolean;
   showSegments: boolean;
   showSafeZone: boolean;
+  safeZonePersonHeight: PersonHeightCm;
   zoom: number;
   panX: number;
   panY: number;
@@ -103,7 +108,14 @@ export type EditorState = {
   toggleGrid: () => void;
   toggleSegments: () => void;
   toggleSafeZone: () => void;
+  setSafeZonePersonHeight: (h: PersonHeightCm) => void;
   resetView: () => void;
+
+  // guides
+  guides: Guide[];
+  addGuide: (axis: 'h' | 'v', position: number) => void;
+  updateGuide: (id: string, position: number) => void;
+  removeGuide: (id: string) => void;
 };
 
 const DEFAULT_VIEW: ViewSettings = {
@@ -111,6 +123,7 @@ const DEFAULT_VIEW: ViewSettings = {
   showGrid: true,
   showSegments: true,
   showSafeZone: false,
+  safeZonePersonHeight: 170,
   zoom: 0.12,
   panX: 0,
   panY: 0,
@@ -149,6 +162,7 @@ export const useEditor = create<EditorState>()(
       history: { past: [], future: [] },
       previewMode: false,
       clipboard: [],
+      guides: [],
 
       pushHistory: () =>
         set((s) => {
@@ -661,9 +675,27 @@ export const useEditor = create<EditorState>()(
         set((s) => {
           s.view.showSafeZone = !s.view.showSafeZone;
         }),
+      setSafeZonePersonHeight: (h) =>
+        set((s) => {
+          s.view.safeZonePersonHeight = h;
+        }),
       resetView: () =>
         set((s) => {
           s.view = { ...DEFAULT_VIEW, mode: s.view.mode };
+        }),
+
+      addGuide: (axis, position) =>
+        set((s) => {
+          s.guides.push({ id: newId('g_'), axis, position });
+        }),
+      updateGuide: (id, position) =>
+        set((s) => {
+          const g = s.guides.find((x) => x.id === id);
+          if (g) g.position = position;
+        }),
+      removeGuide: (id) =>
+        set((s) => {
+          s.guides = s.guides.filter((x) => x.id !== id);
         }),
     };
   }),

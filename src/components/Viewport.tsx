@@ -34,7 +34,7 @@ export function Viewport() {
 
   if (previewMode) {
     return (
-      <main className="relative flex min-w-0 flex-1 flex-col bg-[var(--color-canvas)]">
+      <main className="relative flex min-w-0 flex-1 flex-col canvas-bg">
         {mode === '3d' ? (
           <Suspense fallback={<ChunkLoader label="Loading 3D preview…" />}>
             <Preview3D />
@@ -47,7 +47,7 @@ export function Viewport() {
   }
 
   return (
-    <main className="relative flex min-w-0 flex-1 flex-col bg-[var(--color-canvas)]">
+    <main className="relative flex min-w-0 flex-1 flex-col canvas-bg">
       <div className="relative flex-1 overflow-hidden">
         {mode === '2d' ? (
           <>
@@ -64,7 +64,15 @@ export function Viewport() {
       {/* floating bottom-right HUD */}
       <div className="pointer-events-none absolute bottom-4 right-6 flex items-center gap-2">
         {mode === '2d' && (
-          <div className="pointer-events-auto flex items-center gap-0.5 rounded-full border border-[var(--color-border)] bg-[var(--color-panel)] p-0.5 shadow-[var(--shadow-pop)]">
+          <div
+            className="pointer-events-auto flex items-center gap-0.5 rounded-full border border-[var(--glass-border)] p-0.5"
+            style={{
+              background: 'var(--glass-float)',
+              backdropFilter: 'var(--glass-blur-sm)',
+              WebkitBackdropFilter: 'var(--glass-blur-sm)',
+              boxShadow: 'var(--shadow-float-strong)',
+            }}
+          >
             <HudButton onClick={undo} disabled={past === 0} title="Undo (Ctrl+Z)">
               ↶
             </HudButton>
@@ -94,7 +102,15 @@ export function Viewport() {
             </button>
           </div>
         )}
-        <div className="pointer-events-auto flex h-9 items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-panel)] px-3 text-[11px] text-[var(--color-text-dim)] shadow-[var(--shadow-pop)]">
+        <div
+          className="pointer-events-auto flex h-9 items-center gap-2 rounded-full border border-[var(--glass-border)] px-3 text-[11px] text-[var(--color-text-dim)]"
+          style={{
+            background: 'var(--glass-float)',
+            backdropFilter: 'var(--glass-blur-sm)',
+            WebkitBackdropFilter: 'var(--glass-blur-sm)',
+            boxShadow: 'var(--shadow-float-strong)',
+          }}
+        >
           <span>
             {template.width} × {template.height}
           </span>

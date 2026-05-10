@@ -16,7 +16,14 @@ export function SidebarRail({
 }) {
   return (
     <div className="flex shrink-0">
-      <nav className="flex w-12 shrink-0 flex-col items-center gap-1 border-r border-[var(--color-border)] bg-[var(--color-panel)] py-3">
+      <nav
+        className="flex w-12 shrink-0 flex-col items-center gap-1 border-r border-[var(--color-border-soft)] py-3"
+        style={{
+          background: 'var(--glass-panel)',
+          backdropFilter: 'var(--glass-blur-sm)',
+          WebkitBackdropFilter: 'var(--glass-blur-sm)',
+        }}
+      >
         <RailButton
           label="Toggle panels"
           active={panelsOpen}
@@ -41,7 +48,15 @@ export function SidebarRail({
         </RailButton>
       </nav>
       {active && (
-        <aside className="flex w-[260px] shrink-0 flex-col border-r border-[var(--color-border)] bg-[var(--color-panel)]">
+        <aside
+          className="flex w-[260px] shrink-0 flex-col border-r border-[var(--color-border-soft)]"
+          style={{
+            background: 'var(--glass-panel)',
+            backdropFilter: 'var(--glass-blur-sm)',
+            WebkitBackdropFilter: 'var(--glass-blur-sm)',
+            boxShadow: 'var(--shadow-panel)',
+          }}
+        >
           {active === 'layers' ? <LayersPanel /> : <AssetLibrary />}
         </aside>
       )}

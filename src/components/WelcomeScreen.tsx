@@ -67,7 +67,10 @@ export function WelcomeScreen({ onEnter }: Props) {
             type="button"
             onClick={onEnter}
             className="group inline-flex items-center gap-2.5 rounded-full px-8 py-3.5 text-[14px] font-medium !text-white transition-all duration-150 hover:brightness-110 active:scale-[0.97]"
-            style={{ backgroundColor: 'var(--color-accent)' }}
+            style={{
+              background: 'var(--color-accent-gradient)',
+              boxShadow: '0 4px 20px rgba(230,0,126,0.40)',
+            }}
           >
             Vstoupit
             <svg
