@@ -85,8 +85,8 @@ export function ProjectPicker({ onClose }: { onClose: () => void }) {
       >
         <div className="flex items-center justify-between border-b border-[var(--color-border-soft)] px-5 py-3">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-[var(--color-accent)] text-[12px] font-semibold text-white">
-              A
+            <div className="flex h-7 w-7 items-center justify-center rounded bg-[var(--color-accent)]">
+              <img src={`${import.meta.env.BASE_URL}a.svg`} alt="ARena" className="h-[15px] w-[14px]" />
             </div>
             <span className="text-[14px] font-semibold text-[var(--color-text-strong)]">
               ARena
