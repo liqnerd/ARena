@@ -45,7 +45,7 @@ export function TopBar({
           title="Open project picker"
           className="flex h-9 w-9 items-center justify-center rounded-lg transition hover:bg-[var(--color-panel-2)]"
         >
-          <img src="/a.svg" alt="ARena" className="h-[18px] w-[17px]" />
+          <img src={`${import.meta.env.BASE_URL}a.svg`} alt="ARena" className="h-[18px] w-[17px]" />
         </button>
         <input
           value={projectName}
