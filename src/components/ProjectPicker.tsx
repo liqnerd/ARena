@@ -152,88 +152,72 @@ export function ProjectPicker({ onClose }: { onClose: () => void }) {
           </div>
         </div>
 
-        {/* ── Action cards ── */}
-        <div className="grid grid-cols-2 gap-2.5 px-5 pb-2.5">
+        {/* ── Primary action — New project ── */}
+        <div className="px-5 pb-3">
           <button
             type="button"
             onClick={startBlank}
-            className="group flex flex-col gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-4 text-left transition-all duration-150 hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-softer)]"
+            className="group flex w-full items-center gap-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] px-4 py-3.5 text-left transition-all duration-150 hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-softer)]"
           >
-            <div
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-panel-2)] text-[var(--color-text-dim)] transition-colors group-hover:border-[var(--color-accent)] group-hover:bg-[var(--color-accent-soft)] group-hover:text-[var(--color-accent)]"
-            >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-panel-2)] text-[var(--color-text-dim)] transition-colors group-hover:border-[var(--color-accent)] group-hover:bg-[var(--color-accent-soft)] group-hover:text-[var(--color-accent)]">
               <IcoPlus />
             </div>
-            <div>
-              <div className="text-[13px] font-semibold text-[var(--color-text-strong)]">
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px] font-semibold text-[var(--color-text-strong)]">
                 Nový projekt
               </div>
-              <div className="mt-0.5 text-[11px] text-[var(--color-text-dim)]">
+              <div className="text-[11px] text-[var(--color-text-dim)]">
                 Prázdný 360° cylindr · 7741 × 2450 px
               </div>
             </div>
+            <span className="text-[var(--color-text-dim)] opacity-40 group-hover:opacity-100 transition-opacity">
+              <IcoArrow />
+            </span>
           </button>
+        </div>
 
+        {/* ── Secondary actions — Demo + Import ── */}
+        <div className="grid grid-cols-2 gap-2 px-5 pb-4">
           <button
             type="button"
             onClick={startDemo}
-            className="group flex flex-col gap-2 rounded-xl border p-4 text-left transition-all duration-150 hover:brightness-95"
-            style={{
-              background: 'var(--color-accent-soft)',
-              borderColor: 'rgba(230,0,126,0.25)',
-            }}
+            className="flex items-center gap-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] px-3.5 py-2.5 text-left transition-all duration-150 hover:border-[var(--color-border)] hover:bg-[var(--color-panel-2)]"
           >
-            <div
-              className="flex h-8 w-8 items-center justify-center rounded-lg"
-              style={{
-                background: 'rgba(230,0,126,0.12)',
-                color: 'var(--color-accent)',
-              }}
-            >
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--color-panel-2)] text-[var(--color-text-dim)]">
               <IcoPlay />
             </div>
             <div>
-              <div className="text-[13px] font-semibold text-[var(--color-accent)]">
-                Demo projekt
-              </div>
-              <div className="mt-0.5 text-[11px] text-[var(--color-text-dim)]">
-                3 scény s hotspot navigací
-              </div>
+              <div className="text-[12px] font-semibold text-[var(--color-text)]">Demo projekt</div>
+              <div className="text-[10px] text-[var(--color-text-dim)]">3 scény · hotspoty</div>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => importRef.current?.click()}
+            className="flex items-center gap-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] px-3.5 py-2.5 text-left transition-all duration-150 hover:bg-[var(--color-panel-2)]"
+          >
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--color-panel-2)] text-[var(--color-text-dim)]">
+              <IcoUpload />
+            </div>
+            <div>
+              <div className="text-[12px] font-semibold text-[var(--color-text)]">Import .json</div>
+              <div className="text-[10px] text-[var(--color-text-dim)]">Obnovit projekt</div>
             </div>
           </button>
         </div>
 
-        {/* ── Import ── */}
-        <div className="px-5 pb-4">
-          <button
-            type="button"
-            onClick={() => importRef.current?.click()}
-            className="flex w-full items-center gap-3 rounded-xl border border-dashed border-[var(--color-border)] px-4 py-3 text-left transition-all duration-150 hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-softer)]"
-          >
-            <span className="text-[var(--color-text-dim)]">
-              <IcoUpload />
-            </span>
-            <div>
-              <div className="text-[12px] font-semibold text-[var(--color-text)]">
-                Import .json
-              </div>
-              <div className="text-[11px] text-[var(--color-text-dim)]">
-                Obnovit dříve exportovaný projekt
-              </div>
-            </div>
-          </button>
-          <input
-            ref={importRef}
-            type="file"
-            accept="application/json,.json"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              e.target.value = '';
-              if (f) importFile(f);
-            }}
-            className="hidden"
-          />
-        </div>
+        <input
+          ref={importRef}
+          type="file"
+          accept="application/json,.json"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            e.target.value = '';
+            if (f) importFile(f);
+          }}
+          className="hidden"
+        />
 
         {/* ── Recent projects ── */}
         <div className="border-t border-[var(--color-border-soft)]">
