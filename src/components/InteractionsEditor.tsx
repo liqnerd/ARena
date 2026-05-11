@@ -6,34 +6,10 @@ import type {
   TriggerType,
 } from '@/types/project';
 import { findIssuesForObject } from '@/lib/validate';
-
-const TRIGGERS: { value: TriggerType; label: string }[] = [
-  { value: 'onClick', label: 'On click' },
-  { value: 'onHover', label: 'On hover' },
-  { value: 'onSceneEnter', label: 'On scene enter' },
-  { value: 'onTimer', label: 'On timer' },
-];
-
-const ACTIONS: { value: ActionType; label: string }[] = [
-  { value: 'goToScene', label: 'Go to scene' },
-  { value: 'showObject', label: 'Show object' },
-  { value: 'hideObject', label: 'Hide object' },
-  { value: 'toggleObject', label: 'Toggle object' },
-  { value: 'setText', label: 'Set text' },
-  { value: 'playVideo', label: 'Play video' },
-  { value: 'pauseVideo', label: 'Pause video' },
-];
-
-const ACTIONS_NEED_OBJECT: ActionType[] = [
-  'showObject',
-  'hideObject',
-  'toggleObject',
-  'setText',
-  'playVideo',
-  'pauseVideo',
-];
+import { useT } from '@/i18n';
 
 export function InteractionsEditor({ obj }: { obj: SceneObject }) {
+  const { t } = useT();
   const project = useEditor((s) => s.project);
   const addInteraction = useEditor((s) => s.addInteraction);
   const updateInteraction = useEditor((s) => s.updateInteraction);
@@ -43,6 +19,23 @@ export function InteractionsEditor({ obj }: { obj: SceneObject }) {
   const interactions = obj.interactions ?? [];
   const issues = findIssuesForObject(project, obj.id);
 
+  const TRIGGERS: { value: TriggerType; label: string }[] = [
+    { value: 'onClick', label: t.trigger_onClick },
+    { value: 'onHover', label: t.trigger_onHover },
+    { value: 'onSceneEnter', label: t.trigger_onSceneEnter },
+    { value: 'onTimer', label: t.trigger_onTimer },
+  ];
+
+  const ACTIONS: { value: ActionType; label: string }[] = [
+    { value: 'goToScene', label: t.action_goToScene },
+    { value: 'showObject', label: t.action_showObject },
+    { value: 'hideObject', label: t.action_hideObject },
+    { value: 'toggleObject', label: t.action_toggleObject },
+    { value: 'setText', label: t.action_setText },
+    { value: 'playVideo', label: t.action_playVideo },
+    { value: 'pauseVideo', label: t.action_pauseVideo },
+  ];
+
   const allObjects = project.scenes.flatMap((sc) =>
     sc.objects.map((o) => ({ id: o.id, name: o.name, sceneName: sc.name })),
   );
@@ -51,7 +44,7 @@ export function InteractionsEditor({ obj }: { obj: SceneObject }) {
     <div className="px-3 pt-1 pb-2">
       {interactions.length === 0 && (
         <div className="mb-2 text-[11px] leading-snug text-[var(--color-text-dim)]">
-          No interactions yet.
+          {t.interactions_none}
         </div>
       )}
       {interactions.map((it) => {
@@ -63,6 +56,9 @@ export function InteractionsEditor({ obj }: { obj: SceneObject }) {
             issue={issue?.detail}
             scenes={project.scenes}
             allObjects={allObjects}
+            triggers={TRIGGERS}
+            actions={ACTIONS}
+            t={t}
             onChange={(patch) => {
               pushHistory();
               updateInteraction(obj.id, it.id, patch);
@@ -81,17 +77,29 @@ export function InteractionsEditor({ obj }: { obj: SceneObject }) {
         }
         className="mt-1 w-full rounded border border-dashed border-[var(--color-border-soft)] px-2 py-1 text-[11px] text-[var(--color-text-dim)] transition hover:border-[var(--color-accent)] hover:text-[var(--color-text-strong)]"
       >
-        + Add interaction
+        {t.interactions_add}
       </button>
     </div>
   );
 }
+
+const ACTIONS_NEED_OBJECT: ActionType[] = [
+  'showObject',
+  'hideObject',
+  'toggleObject',
+  'setText',
+  'playVideo',
+  'pauseVideo',
+];
 
 function InteractionRow({
   it,
   issue,
   scenes,
   allObjects,
+  triggers,
+  actions,
+  t,
   onChange,
   onDelete,
 }: {
@@ -99,6 +107,9 @@ function InteractionRow({
   issue: string | undefined;
   scenes: { id: string; name: string }[];
   allObjects: { id: string; name: string; sceneName: string }[];
+  triggers: { value: TriggerType; label: string }[];
+  actions: { value: ActionType; label: string }[];
+  t: ReturnType<typeof useT>['t'];
   onChange: (patch: Partial<Interaction>) => void;
   onDelete: () => void;
 }) {
@@ -123,22 +134,22 @@ function InteractionRow({
           type="button"
           onClick={onDelete}
           className="text-[var(--color-text-dim)] hover:text-rose-400"
-          title="Delete interaction"
+          title={t.interactions_delete}
         >
           ×
         </button>
       </div>
 
-      <Field label="When">
+      <Field label={t.interactions_when}>
         <Select
           value={it.trigger}
           onChange={(v) => onChange({ trigger: v as TriggerType })}
-          options={TRIGGERS}
+          options={triggers}
         />
       </Field>
 
       {needsDelay && (
-        <Field label="Delay">
+        <Field label={t.interactions_delay}>
           <input
             type="number"
             min={0}
@@ -152,23 +163,23 @@ function InteractionRow({
         </Field>
       )}
 
-      <Field label="Then">
+      <Field label={t.interactions_then}>
         <Select
           value={it.action}
           onChange={(v) =>
             onChange({ action: v as ActionType, targetId: undefined, value: undefined })
           }
-          options={ACTIONS}
+          options={actions}
         />
       </Field>
 
       {needsScene && (
-        <Field label="Scene">
+        <Field label={t.interactions_scene}>
           <Select
             value={it.targetId ?? ''}
             onChange={(v) => onChange({ targetId: v || undefined })}
             options={[
-              { value: '', label: '— pick scene —' },
+              { value: '', label: t.interactions_pickScene },
               ...scenes.map((s) => ({ value: s.id, label: s.name })),
             ]}
           />
@@ -176,12 +187,12 @@ function InteractionRow({
       )}
 
       {needsObject && (
-        <Field label="Object">
+        <Field label={t.interactions_object}>
           <Select
             value={it.targetId ?? ''}
             onChange={(v) => onChange({ targetId: v || undefined })}
             options={[
-              { value: '', label: '— pick object —' },
+              { value: '', label: t.interactions_pickObject },
               ...allObjects.map((o) => ({
                 value: o.id,
                 label: `${o.name} · ${o.sceneName}`,
@@ -192,7 +203,7 @@ function InteractionRow({
       )}
 
       {needsValue && (
-        <Field label="Value">
+        <Field label={t.interactions_value}>
           <input
             type="text"
             value={it.value ?? ''}

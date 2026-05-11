@@ -1,7 +1,9 @@
 import { useEditor } from '@/store/editor';
 import { sceneIsReferenced } from '@/lib/validate';
+import { useT } from '@/i18n';
 
 export function SceneStrip({ onCollapse }: { onCollapse: () => void }) {
+  const { t, lang } = useT();
   const scenes = useEditor((s) => s.project.scenes);
   const currentSceneId = useEditor((s) => s.currentSceneId);
   const startSceneId = useEditor((s) => s.project.startSceneId);
@@ -51,7 +53,7 @@ export function SceneStrip({ onCollapse }: { onCollapse: () => void }) {
                     e.stopPropagation();
                     duplicateScene(scene.id);
                   }}
-                  title="Duplicate"
+                  title={t.strip_duplicate}
                   className="flex h-5 w-5 items-center justify-center rounded-full bg-white/90 text-[10px] text-[var(--color-text)] hover:bg-white"
                 >
                   ⎘
@@ -66,11 +68,15 @@ export function SceneStrip({ onCollapse }: { onCollapse: () => void }) {
                         scene.id,
                       );
                       const msg = refs
-                        ? `Delete "${scene.name}"? ${refs} interaction${refs > 1 ? 's' : ''} target${refs > 1 ? '' : 's'} this scene and will become invalid.`
-                        : `Delete "${scene.name}"?`;
+                        ? lang === 'cs'
+                          ? `Smazat "${scene.name}"? ${refs} interakce${refs > 1 ? (refs < 5 ? '' : '') : ''} cílí na tuto scénu a stanou se neplatné.`
+                          : `Delete "${scene.name}"? ${refs} interaction${refs > 1 ? 's' : ''} target${refs > 1 ? '' : 's'} this scene and will become invalid.`
+                        : lang === 'cs'
+                          ? `Smazat "${scene.name}"?`
+                          : `Delete "${scene.name}"?`;
                       if (confirm(msg)) deleteScene(scene.id);
                     }}
-                    title="Delete"
+                    title={t.strip_delete}
                     className="flex h-5 w-5 items-center justify-center rounded-full bg-white/90 text-[10px] text-[var(--color-text)] hover:bg-rose-500 hover:text-white"
                   >
                     ×
@@ -105,13 +111,13 @@ export function SceneStrip({ onCollapse }: { onCollapse: () => void }) {
           boxShadow: '0 4px 16px rgba(230,0,126,0.25)',
         }}
       >
-        <span className="text-[14px] leading-none">+</span> New
+        <span className="text-[14px] leading-none">+</span> {t.strip_new.replace('+ ', '')}
       </button>
       <div className="ml-auto flex items-center">
         <button
           type="button"
           onClick={onCollapse}
-          title="Collapse"
+          title={t.strip_collapse}
           className="flex h-7 w-7 items-center justify-center rounded-full text-[var(--color-text-dim)] hover:bg-[var(--color-panel-2)] hover:text-[var(--color-text-strong)]"
         >
           ⌄

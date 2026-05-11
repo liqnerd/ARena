@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useEditor } from '@/store/editor';
 import type { SceneObject } from '@/types/project';
+import { useT } from '@/i18n';
 
 const LAYER_DRAG_MIME = 'application/x-arena-layer';
 
@@ -37,6 +38,7 @@ const TYPE_ICON: Record<SceneObject['type'], React.ReactNode> = {
 };
 
 export function LayersPanel() {
+  const { t } = useT();
   const scenes = useEditor((s) => s.project.scenes);
   const currentSceneId = useEditor((s) => s.currentSceneId);
   const setCurrentScene = useEditor((s) => s.setCurrentScene);
@@ -66,7 +68,7 @@ export function LayersPanel() {
     <div className="flex h-full flex-col">
       <div className="flex h-11 items-center justify-between border-b border-[var(--color-border)] px-4">
         <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-text-dim)]">
-          Layers
+          {t.layers_title}
         </span>
       </div>
 
@@ -108,7 +110,7 @@ export function LayersPanel() {
                 <ul className="pb-1">
                   {total === 0 ? (
                     <li className="px-9 py-1 text-[11px] text-[var(--color-text-dim)]">
-                      Empty
+                      {t.layers_empty}
                     </li>
                   ) : (
                     sortedDesc.map((obj, idx) => {
@@ -177,7 +179,7 @@ export function LayersPanel() {
                               pushHistory();
                               updateObject(obj.id, { locked: !obj.locked });
                             }}
-                            title={obj.locked ? 'Unlock' : 'Lock'}
+                            title={obj.locked ? t.layers_unlock : t.layers_lock}
                             className={`h-4 w-4 shrink-0 transition ${
                               obj.locked
                                 ? 'text-[var(--color-text)]'
@@ -193,7 +195,7 @@ export function LayersPanel() {
                               pushHistory();
                               updateObject(obj.id, { visible: !obj.visible });
                             }}
-                            title={obj.visible ? 'Hide' : 'Show'}
+                            title={obj.visible ? t.layers_hide : t.layers_show}
                             className={`h-4 w-4 shrink-0 transition ${
                               !obj.visible
                                 ? 'text-[var(--color-text)]'
@@ -208,7 +210,7 @@ export function LayersPanel() {
                               e.stopPropagation();
                               deleteObject(obj.id);
                             }}
-                            title="Delete"
+                            title={t.layers_delete}
                             className="hidden h-4 w-4 shrink-0 items-center justify-center text-[var(--color-text-dim)] hover:text-rose-500 group-hover:flex"
                           >
                             ×

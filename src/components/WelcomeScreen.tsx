@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useT } from '@/i18n';
 
 interface Props {
   onEnter: () => void;
@@ -6,6 +7,7 @@ interface Props {
 
 export function WelcomeScreen({ onEnter }: Props) {
   const [ready, setReady] = useState(false);
+  const { t, lang, setLang } = useT();
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setReady(true));
@@ -24,6 +26,11 @@ export function WelcomeScreen({ onEnter }: Props) {
       />
       <div className="absolute inset-0 bg-gradient-to-r from-black/5 via-black/30 to-black/75" />
 
+      {/* Language toggle */}
+      <div className="absolute top-4 right-4 z-10">
+        <LangToggle lang={lang} setLang={setLang} />
+      </div>
+
       <div
         className="absolute inset-y-0 left-[62%] right-0 flex flex-col justify-center px-14"
         style={{
@@ -40,9 +47,7 @@ export function WelcomeScreen({ onEnter }: Props) {
           style={{ filter: 'brightness(0) invert(1)' }}
         />
 
-        <p
-          className="mb-3 text-[11px] font-medium uppercase tracking-[0.18em] text-white/40"
-        >
+        <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.18em] text-white/40">
           360° Spatial Editor
         </p>
 
@@ -50,16 +55,16 @@ export function WelcomeScreen({ onEnter }: Props) {
           className="mb-5 text-[42px] font-semibold leading-[1.15] text-white"
           style={{ letterSpacing: '-0.03em' }}
         >
-          Tvořte prostory,<br />
-          které ohromí.
+          {t.welcome_headline1}<br />
+          {t.welcome_headline2}
         </h1>
 
         <p
           className="mb-10 text-[15px] font-light leading-[1.7] text-white/60"
           style={{ letterSpacing: '-0.01em' }}
         >
-          Profesionální editor pro návrh a prezentaci<br />
-          imerzivních 360° scén.
+          {t.welcome_sub1}<br />
+          {t.welcome_sub2}
         </p>
 
         <div>
@@ -72,7 +77,7 @@ export function WelcomeScreen({ onEnter }: Props) {
               boxShadow: '0 4px 20px rgba(230,0,126,0.40)',
             }}
           >
-            Vstoupit
+            {t.welcome_enter}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="15"
@@ -91,9 +96,34 @@ export function WelcomeScreen({ onEnter }: Props) {
         </div>
 
         <p className="mt-12 text-[11px] uppercase tracking-widest text-white/25">
-          © 2026 ARena Studio
+          {t.welcome_copyright}
         </p>
       </div>
+    </div>
+  );
+}
+
+function LangToggle({ lang, setLang }: { lang: 'cs' | 'en'; setLang: (l: 'cs' | 'en') => void }) {
+  return (
+    <div className="flex items-center gap-0.5 rounded-full bg-black/30 p-1 backdrop-blur-sm">
+      <button
+        type="button"
+        onClick={() => setLang('cs')}
+        className={`rounded-full px-3 py-1 text-[12px] font-semibold transition-all duration-150 ${
+          lang === 'cs' ? 'bg-white text-[#E6007E]' : 'text-white/60 hover:text-white'
+        }`}
+      >
+        CZ
+      </button>
+      <button
+        type="button"
+        onClick={() => setLang('en')}
+        className={`rounded-full px-3 py-1 text-[12px] font-semibold transition-all duration-150 ${
+          lang === 'en' ? 'bg-white text-[#E6007E]' : 'text-white/60 hover:text-white'
+        }`}
+      >
+        EN
+      </button>
     </div>
   );
 }

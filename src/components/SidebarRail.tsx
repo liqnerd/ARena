@@ -1,5 +1,6 @@
 import { LayersPanel } from '@/components/LayersPanel';
 import { AssetLibrary } from '@/components/AssetLibrary';
+import { useT } from '@/i18n';
 
 export type RailPanel = 'layers' | 'assets' | null;
 
@@ -14,6 +15,8 @@ export function SidebarRail({
   panelsOpen: boolean;
   onToggleAll: () => void;
 }) {
+  const { t } = useT();
+
   return (
     <div className="flex shrink-0">
       <nav
@@ -25,7 +28,7 @@ export function SidebarRail({
         }}
       >
         <RailButton
-          label="Toggle panels"
+          label={t.rail_togglePanels}
           active={panelsOpen}
           onClick={onToggleAll}
         >
@@ -33,14 +36,14 @@ export function SidebarRail({
         </RailButton>
         <div className="my-1 h-px w-6 bg-[var(--color-border)]" />
         <RailButton
-          label="Layers"
+          label={t.rail_layers}
           active={active === 'layers'}
           onClick={() => onChange(active === 'layers' ? null : 'layers')}
         >
           <IconLayers />
         </RailButton>
         <RailButton
-          label="Assets"
+          label={t.rail_assets}
           active={active === 'assets'}
           onClick={() => onChange(active === 'assets' ? null : 'assets')}
         >

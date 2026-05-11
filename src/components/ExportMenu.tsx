@@ -5,6 +5,7 @@ import { sceneToPngBlob } from '@/lib/exportPng';
 import { projectToJson, projectFromJson } from '@/lib/exportJson';
 import { downloadBlob, downloadText, safeFilename } from '@/lib/download';
 import { findReferenceIssues } from '@/lib/validate';
+import { useT } from '@/i18n';
 
 // JSZip is heavy; load lazily on first ZIP export
 const loadZipBundler = () =>
@@ -17,6 +18,7 @@ type Status =
   | { kind: 'done'; message: string };
 
 export function ExportMenu() {
+  const { t, lang } = useT();
   const project = useEditor((s) => s.project);
   const currentSceneId = useEditor((s) => s.currentSceneId);
   const setProject = useEditor((s) => s.setProject);
@@ -37,8 +39,8 @@ export function ExportMenu() {
 
   useEffect(() => {
     if (status.kind === 'done' || status.kind === 'error') {
-      const t = setTimeout(() => setStatus({ kind: 'idle' }), 4000);
-      return () => clearTimeout(t);
+      const timer = setTimeout(() => setStatus({ kind: 'idle' }), 4000);
+      return () => clearTimeout(timer);
     }
   }, [status]);
 
@@ -46,13 +48,13 @@ export function ExportMenu() {
     setStatus({ kind: 'busy', label });
     try {
       const result = await fn();
-      setStatus({ kind: 'done', message: `${label} complete` });
+      setStatus({ kind: 'done', message: `${label} ${t.export_complete}` });
       return result;
     } catch (err) {
       console.error('[arena] export failed', err);
       setStatus({
         kind: 'error',
-        message: err instanceof Error ? err.message : 'Export failed',
+        message: err instanceof Error ? err.message : t.export_failed,
       });
       return null;
     }
@@ -77,7 +79,7 @@ export function ExportMenu() {
 
   async function exportAllSvgs() {
     setOpen(false);
-    await withStatus('Batch SVG export (ZIP)', async () => {
+    await withStatus('Batch SVG (ZIP)', async () => {
       const bundle = await loadZipBundler();
       const blob = await bundle(project, {
         includePng: false,
@@ -124,19 +126,22 @@ export function ExportMenu() {
   }
 
   async function onImportFile(file: File) {
-    if (
-      !confirm(
-        `Replace current project with "${file.name}"? Your current edits will be saved into autosave history but the active project will switch.`,
-      )
-    ) {
-      return;
-    }
+    const msg = lang === 'cs'
+      ? `Nahradit aktuální projekt souborem "${file.name}"? Stávající práce bude uložena do historie automatického ukládání.`
+      : `Replace current project with "${file.name}"? Your current edits will be saved into autosave history but the active project will switch.`;
+    if (!confirm(msg)) return;
     await withStatus('JSON import', async () => {
       const text = await file.text();
       const restored = await projectFromJson(text);
       setProject(restored);
     });
   }
+
+  const brokenRefMsg = issues.length > 0
+    ? lang === 'cs'
+      ? `⚠ ${issues.length} přerušená${issues.length > 1 ? (issues.length < 5 ? ' přerušené' : ' přerušených') : ''} reference v interakcích`
+      : `⚠ ${issues.length} broken reference${issues.length > 1 ? 's' : ''} in interactions`
+    : null;
 
   return (
     <div ref={menuRef} className="relative">
@@ -154,7 +159,7 @@ export function ExportMenu() {
           <polyline points="7 10 12 15 17 10" />
           <line x1="12" y1="15" x2="12" y2="3" />
         </svg>
-        Export
+        {t.export_label}
       </button>
 
       <input
@@ -171,23 +176,22 @@ export function ExportMenu() {
 
       {open && (
         <div className="absolute right-0 top-full z-30 mt-2 w-[260px] overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] shadow-[var(--shadow-float)]">
-          {issues.length > 0 && (
+          {brokenRefMsg && (
             <div className="border-b border-[var(--color-border-soft)] bg-amber-50 px-3 py-2 text-[11px] text-amber-700">
-              ⚠ {issues.length} broken reference
-              {issues.length > 1 ? 's' : ''} in interactions
+              {brokenRefMsg}
             </div>
           )}
-          <Section title="Current scene">
-            <Item label="Export as SVG" hint=".svg" onClick={exportCurrentSvg} />
-            <Item label="Export as PNG" hint=".png" onClick={exportPng} />
+          <Section title={t.export_currentScene}>
+            <Item label={t.export_asSvg} hint=".svg" onClick={exportCurrentSvg} />
+            <Item label={t.export_asPng} hint=".png" onClick={exportPng} />
           </Section>
-          <Section title="All scenes">
-            <Item label="Batch SVG (ZIP)" hint=".zip" onClick={exportAllSvgs} />
+          <Section title={t.export_allScenes}>
+            <Item label={t.export_batchSvg} hint=".zip" onClick={exportAllSvgs} />
           </Section>
-          <Section title="Project">
-            <Item label="Export project JSON" hint=".json" onClick={exportJson} />
-            <Item label="Export bundle (ZIP)" hint=".zip" onClick={exportZip} />
-            <Item label="Import project JSON…" onClick={triggerImport} />
+          <Section title={t.export_project}>
+            <Item label={t.export_projectJson} hint=".json" onClick={exportJson} />
+            <Item label={t.export_bundle} hint=".zip" onClick={exportZip} />
+            <Item label={t.export_importJson} onClick={triggerImport} />
           </Section>
         </div>
       )}

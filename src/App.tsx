@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { TopBar } from '@/components/TopBar';
 import { SidebarRail, type RailPanel } from '@/components/SidebarRail';
@@ -9,6 +9,7 @@ import { ProjectPicker } from '@/components/ProjectPicker';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useAutosave } from '@/hooks/useAutosave';
 import { useProjectBootstrap } from '@/hooks/useProjectBootstrap';
+import { useT } from '@/i18n';
 
 export default function App() {
   const { state, dismissPicker, showPicker } = useProjectBootstrap();
@@ -17,6 +18,7 @@ export default function App() {
   const [rail, setRail] = useState<RailPanel>('layers');
   const [inspectorOpen, setInspectorOpen] = useState(true);
   const [stripOpen, setStripOpen] = useState(true);
+  const { t } = useT();
   useKeyboardShortcuts({ onHelp: () => setHelpOpen((v) => !v) });
   useAutosave();
 
@@ -27,7 +29,7 @@ export default function App() {
   if (state.kind === 'loading') {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-[var(--color-bg)] text-[var(--color-text-dim)]">
-        <div className="text-[12px] uppercase tracking-wider">Loading projectâ€¦</div>
+        <div className="text-[12px] uppercase tracking-wider">{t.app_loading}</div>
       </div>
     );
   }
@@ -60,7 +62,7 @@ export default function App() {
           onClick={() => setStripOpen(true)}
           className="flex h-7 shrink-0 items-center justify-center border-t border-[var(--color-border)] bg-[var(--color-panel)] text-[11px] text-[var(--color-text-dim)] hover:text-[var(--color-text-strong)]"
         >
-          âŒƒ Show scenes
+          {t.app_showScenes}
         </button>
       )}
       {state.kind === 'pick' && <ProjectPicker onClose={dismissPicker} />}
@@ -70,44 +72,47 @@ export default function App() {
 }
 
 function ShortcutHelp({ onClose }: { onClose: () => void }) {
+  const { t } = useT();
+
   const groups: { title: string; items: [string, string][] }[] = [
     {
-      title: 'Selection',
+      title: t.shortcuts_selection,
       items: [
-        ['Click', 'Select object'],
-        ['Shift + Click', 'Add to selection'],
-        ['Drag empty', 'Marquee select'],
-        ['Esc', 'Clear selection'],
+        ['Click', t.shortcut_select],
+        ['Shift + Click', t.shortcut_addToSelection],
+        ['Drag empty', t.shortcut_marquee],
+        ['Esc', t.shortcut_clearSelection],
       ],
     },
     {
-      title: 'Edit',
+      title: t.shortcuts_edit,
       items: [
-        ['Delete / Backspace', 'Delete selection'],
-        ['Ctrl/âŒ˜ + D', 'Duplicate'],
-        ['Ctrl/âŒ˜ + C / V', 'Copy / paste'],
-        ['Arrows', 'Nudge 10px'],
-        ['Shift + Arrows', 'Nudge 50px'],
+        ['Delete / Backspace', t.shortcut_deleteSelection],
+        ['Ctrl/⌘ + D', t.shortcut_duplicate],
+        ['Ctrl/⌘ + C / V', t.shortcut_copyPaste],
+        ['Arrows', t.shortcut_nudge10],
+        ['Shift + Arrows', t.shortcut_nudge50],
       ],
     },
     {
-      title: 'History',
+      title: t.shortcuts_history,
       items: [
-        ['Ctrl/âŒ˜ + Z', 'Undo'],
-        ['Ctrl/âŒ˜ + Shift + Z', 'Redo'],
+        ['Ctrl/⌘ + Z', t.shortcut_undo],
+        ['Ctrl/⌘ + Shift + Z', t.shortcut_redo],
       ],
     },
     {
-      title: 'View',
+      title: t.shortcuts_view,
       items: [
-        ['Ctrl/âŒ˜ + Wheel', 'Zoom'],
-        ['Wheel', 'Pan'],
-        ['Hold Space + Drag', 'Pan'],
-        ['1 / 2', '2D / 3D mode'],
-        ['?', 'Toggle this help'],
+        ['Ctrl/⌘ + Wheel', t.shortcut_zoom],
+        ['Wheel', t.shortcut_pan],
+        ['Hold Space + Drag', t.shortcut_pan2],
+        ['1 / 2', t.shortcut_mode],
+        ['?', t.shortcut_help],
       ],
     },
   ];
+
   return (
     <div
       className="fixed inset-0 z-40 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -125,14 +130,14 @@ function ShortcutHelp({ onClose }: { onClose: () => void }) {
       >
         <div className="mb-4 flex items-center justify-between">
           <span className="text-[15px] font-semibold text-[var(--color-text-strong)]">
-            Keyboard shortcuts
+            {t.shortcuts_title}
           </span>
           <button
             type="button"
             onClick={onClose}
             className="flex h-7 w-7 items-center justify-center rounded-full text-[var(--color-text-dim)] hover:bg-[var(--color-panel-2)] hover:text-[var(--color-text-strong)]"
           >
-            Ã—
+            ×
           </button>
         </div>
         <div className="grid grid-cols-2 gap-x-6 gap-y-5">
@@ -158,4 +163,3 @@ function ShortcutHelp({ onClose }: { onClose: () => void }) {
     </div>
   );
 }
-

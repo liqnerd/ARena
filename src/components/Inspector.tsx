@@ -9,6 +9,7 @@ import type {
 import { InteractionsEditor } from '@/components/InteractionsEditor';
 import { useEffect, useRef, useState } from 'react';
 import { HexColorPicker } from 'react-colorful';
+import { useT } from '@/i18n';
 
 const FONTS = [
   { label: 'Inter', value: 'Inter, system-ui, sans-serif' },
@@ -303,25 +304,27 @@ function ColorSwatch({
 }
 
 function MultiSelectInspector({ count }: { count: number }) {
+  const { t } = useT();
   const deleteObject = useEditor((s) => s.deleteObject);
   const selectedIds = useEditor((s) => s.selectedObjectIds);
   return (
     <div className="px-4 py-5 text-[12px] text-[var(--color-text-dim)]">
       <div className="mb-3 text-[14px] font-semibold text-[var(--color-text-strong)]">
-        {count} objects selected
+        {count} {t.inspector_objectsSelected}
       </div>
       <button
         type="button"
         onClick={() => selectedIds.forEach((id) => deleteObject(id))}
         className="rounded-full bg-rose-50 px-3 py-1.5 text-[12px] font-medium text-rose-600 hover:bg-rose-100"
       >
-        Delete selection
+        {t.inspector_deleteSelection}
       </button>
     </div>
   );
 }
 
 function ObjectInspector({ obj }: { obj: SceneObject }) {
+  const { t } = useT();
   const updateObject = useEditor((s) => s.updateObject);
   const pushHistory = useEditor((s) => s.pushHistory);
   const deleteObject = useEditor((s) => s.deleteObject);
@@ -342,7 +345,7 @@ function ObjectInspector({ obj }: { obj: SceneObject }) {
       <div className="flex items-center justify-between border-b border-[var(--color-border-soft)] px-4 py-3">
         <div>
           <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-text-dim)]">
-            Object
+            {t.inspector_object}
           </div>
           <input
             value={obj.name}
@@ -355,26 +358,26 @@ function ObjectInspector({ obj }: { obj: SceneObject }) {
           <IconButton
             onClick={() => commit({ locked: !obj.locked })}
             active={obj.locked}
-            title={obj.locked ? 'Unlock' : 'Lock'}
+            title={obj.locked ? t.inspector_unlock : t.inspector_lock}
           >
             {obj.locked ? <IcoLockClosed /> : <IcoLockOpen />}
           </IconButton>
           <IconButton
             onClick={() => commit({ visible: !obj.visible })}
             active={!obj.visible}
-            title={obj.visible ? 'Hide' : 'Show'}
+            title={obj.visible ? t.inspector_hide : t.inspector_show}
           >
             {obj.visible ? <IcoEyeOpen /> : <IcoEyeClosed />}
           </IconButton>
         </div>
       </div>
 
-      <Section title="Editor">
-        <Row label="Position">
+      <Section title={t.inspector_section_editor}>
+        <Row label={t.inspector_position}>
           <NumberField prefix="X" value={obj.x} onChange={(v) => commit({ x: v })} />
           <NumberField prefix="Y" value={obj.y} onChange={(v) => commit({ y: v })} />
         </Row>
-        <Row label="Rotation">
+        <Row label={t.inspector_rotation}>
           <NumberField
             prefix="°"
             value={obj.rotation}
@@ -384,7 +387,7 @@ function ObjectInspector({ obj }: { obj: SceneObject }) {
             type="button"
             onClick={() => commit({ rotation: obj.rotation - 90 })}
             className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-panel-2)] text-[var(--color-text)] hover:bg-[var(--color-panel-3)]"
-            title="Rotate -90°"
+            title={t.inspector_rotateCCW}
           >
             <IcoRotateCCW />
           </button>
@@ -392,15 +395,15 @@ function ObjectInspector({ obj }: { obj: SceneObject }) {
             type="button"
             onClick={() => commit({ rotation: obj.rotation + 90 })}
             className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-panel-2)] text-[var(--color-text)] hover:bg-[var(--color-panel-3)]"
-            title="Rotate 90°"
+            title={t.inspector_rotateCW}
           >
             <IcoRotateCW />
           </button>
         </Row>
       </Section>
 
-      <Section title="Layout">
-        <Row label="Dimensions">
+      <Section title={t.inspector_section_layout}>
+        <Row label={t.inspector_dimensions}>
           <NumberField
             prefix="W"
             value={obj.width}
@@ -412,11 +415,11 @@ function ObjectInspector({ obj }: { obj: SceneObject }) {
             onChange={(v) => commit({ height: Math.max(1, v) })}
           />
         </Row>
-        <Row label="Layer">
+        <Row label={t.inspector_layer}>
           <button
             type="button"
             onClick={() => bringToFront(obj.id)}
-            title="Bring to front"
+            title={t.inspector_bringToFront}
             className="flex h-7 flex-1 items-center justify-center rounded-full bg-[var(--color-panel-2)] text-[var(--color-text)] hover:bg-[var(--color-panel-3)]"
           >
             <IcoToFront />
@@ -424,7 +427,7 @@ function ObjectInspector({ obj }: { obj: SceneObject }) {
           <button
             type="button"
             onClick={() => bringForward(obj.id)}
-            title="Bring forward"
+            title={t.inspector_bringForward}
             className="flex h-7 flex-1 items-center justify-center rounded-full bg-[var(--color-panel-2)] text-[var(--color-text)] hover:bg-[var(--color-panel-3)]"
           >
             <IcoForward />
@@ -432,7 +435,7 @@ function ObjectInspector({ obj }: { obj: SceneObject }) {
           <button
             type="button"
             onClick={() => sendBackward(obj.id)}
-            title="Send backward"
+            title={t.inspector_sendBackward}
             className="flex h-7 flex-1 items-center justify-center rounded-full bg-[var(--color-panel-2)] text-[var(--color-text)] hover:bg-[var(--color-panel-3)]"
           >
             <IcoBackward />
@@ -440,7 +443,7 @@ function ObjectInspector({ obj }: { obj: SceneObject }) {
           <button
             type="button"
             onClick={() => sendToBack(obj.id)}
-            title="Send to back"
+            title={t.inspector_sendToBack}
             className="flex h-7 flex-1 items-center justify-center rounded-full bg-[var(--color-panel-2)] text-[var(--color-text)] hover:bg-[var(--color-panel-3)]"
           >
             <IcoToBack />
@@ -448,8 +451,8 @@ function ObjectInspector({ obj }: { obj: SceneObject }) {
         </Row>
       </Section>
 
-      <Section title="Appearance">
-        <Row label="Opacity">
+      <Section title={t.inspector_section_appearance}>
+        <Row label={t.inspector_opacity}>
           <Slider
             min={0}
             max={100}
@@ -462,7 +465,7 @@ function ObjectInspector({ obj }: { obj: SceneObject }) {
 
       <TypeSpecific obj={obj} />
 
-      <Section title="Action">
+      <Section title={t.inspector_section_action}>
         <InteractionsEditor obj={obj} />
       </Section>
 
@@ -472,14 +475,14 @@ function ObjectInspector({ obj }: { obj: SceneObject }) {
           onClick={() => duplicateObject(obj.id)}
           className="flex-1 rounded-full bg-[var(--color-panel-2)] px-3 py-1.5 text-[12px] text-[var(--color-text)] hover:bg-[var(--color-panel-3)]"
         >
-          Duplicate
+          {t.inspector_duplicate}
         </button>
         <button
           type="button"
           onClick={() => deleteObject(obj.id)}
           className="flex-1 rounded-full bg-rose-50 px-3 py-1.5 text-[12px] font-medium text-rose-600 hover:bg-rose-100"
         >
-          Delete
+          {t.inspector_delete}
         </button>
       </div>
     </div>
@@ -514,6 +517,7 @@ function IconButton({
 }
 
 function TypeSpecific({ obj }: { obj: SceneObject }) {
+  const { t } = useT();
   const updateObject = useEditor((s) => s.updateObject);
   const pushHistory = useEditor((s) => s.pushHistory);
 
@@ -523,18 +527,18 @@ function TypeSpecific({ obj }: { obj: SceneObject }) {
   if (obj.type === 'text') {
     const props = obj.props as TextObjectProps;
     return (
-      <Section title="Text">
+      <Section title={t.inspector_section_text}>
         <textarea
           value={props.content}
           onChange={(e) => patch({ content: e.target.value })}
           onBlur={() => pushHistory()}
-          placeholder="Type text…"
+          placeholder={t.inspector_typeText}
           className="h-20 w-full resize-none rounded-xl bg-[var(--color-panel-2)] px-3 py-2 text-[12px] text-[var(--color-text)] outline-none focus:bg-[var(--color-panel)] focus:ring-1 focus:ring-[var(--color-accent)]"
         />
-        <Row label="Font">
+        <Row label={t.inspector_font}>
           <FontSelect value={props.fontFamily} onChange={(v) => { pushHistory(); patch({ fontFamily: v }); }} />
         </Row>
-        <Row label="Size">
+        <Row label={t.inspector_size}>
           <NumberField
             prefix="sz"
             value={props.fontSize}
@@ -552,7 +556,7 @@ function TypeSpecific({ obj }: { obj: SceneObject }) {
             }}
           />
         </Row>
-        <Row label="Color">
+        <Row label={t.inspector_color}>
           <ColorSwatch
             value={props.color}
             onChange={(v) => {
@@ -561,7 +565,7 @@ function TypeSpecific({ obj }: { obj: SceneObject }) {
             }}
           />
         </Row>
-        <Row label="Align">
+        <Row label={t.inspector_align}>
           <div className="flex w-full gap-1">
             {(['left', 'center', 'right'] as const).map((a) => {
               const active = props.align === a;
@@ -611,8 +615,8 @@ function TypeSpecific({ obj }: { obj: SceneObject }) {
   if (obj.type === 'shape') {
     const props = obj.props as ShapeObjectProps;
     return (
-      <Section title="Fill">
-        <Row label="Fill">
+      <Section title={t.inspector_section_fill}>
+        <Row label={t.inspector_fill}>
           <ColorSwatch
             value={props.fill ?? '#E6007E'}
             onChange={(v) => {
@@ -622,7 +626,7 @@ function TypeSpecific({ obj }: { obj: SceneObject }) {
           />
         </Row>
         {props.shape === 'rect' && (
-          <Row label="Corner radius">
+          <Row label={t.inspector_cornerRadius}>
             <Slider
               min={0}
               max={200}
@@ -642,8 +646,8 @@ function TypeSpecific({ obj }: { obj: SceneObject }) {
   if (obj.type === 'hotspot') {
     const props = obj.props as HotspotObjectProps;
     return (
-      <Section title="Hotspot">
-        <Row label="Label">
+      <Section title={t.inspector_section_hotspot}>
+        <Row label={t.inspector_label}>
           <TextField
             value={props.label ?? ''}
             onChange={(v) => {
@@ -653,7 +657,7 @@ function TypeSpecific({ obj }: { obj: SceneObject }) {
             placeholder="Tap"
           />
         </Row>
-        <Row label="Style">
+        <Row label={t.inspector_style}>
           <button
             type="button"
             onClick={() => {
@@ -666,7 +670,7 @@ function TypeSpecific({ obj }: { obj: SceneObject }) {
                 : 'bg-[var(--color-panel-2)] text-[var(--color-text)]'
             }`}
           >
-            {props.invisible ? 'Invisible' : 'Visible'}
+            {props.invisible ? t.inspector_invisible : t.inspector_visible}
           </button>
         </Row>
       </Section>
@@ -676,8 +680,8 @@ function TypeSpecific({ obj }: { obj: SceneObject }) {
   if (obj.type === 'video') {
     const props = obj.props as VideoObjectProps;
     return (
-      <Section title="Video">
-        <Row label="Playback">
+      <Section title={t.inspector_section_video}>
+        <Row label={t.inspector_playback}>
           <button
             type="button"
             onClick={() => {
@@ -690,7 +694,7 @@ function TypeSpecific({ obj }: { obj: SceneObject }) {
                 : 'bg-[var(--color-panel-2)] text-[var(--color-text)]'
             }`}
           >
-            {props.loop ? 'Loop on' : 'Loop off'}
+            {props.loop ? t.inspector_loopOn : t.inspector_loopOff}
           </button>
           <button
             type="button"
@@ -704,7 +708,7 @@ function TypeSpecific({ obj }: { obj: SceneObject }) {
                 : 'bg-[var(--color-panel-2)] text-[var(--color-text)]'
             }`}
           >
-            {props.muted ? 'Muted' : 'Sound'}
+            {props.muted ? t.inspector_muted : t.inspector_sound}
           </button>
         </Row>
       </Section>
@@ -807,6 +811,7 @@ function IcoToBack() {
 }
 
 function SceneInspector() {
+  const { t } = useT();
   const scene = useCurrentScene();
   const renameScene = useEditor((s) => s.renameScene);
   const updateBg = useEditor((s) => s.updateSceneBackground);
@@ -821,24 +826,24 @@ function SceneInspector() {
     <div>
       <div className="border-b border-[var(--color-border-soft)] px-4 py-3">
         <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-text-dim)]">
-          Scene
+          {t.inspector_section_scene}
         </div>
         <div className="text-[14px] font-semibold text-[var(--color-text-strong)]">
           {scene.name}
         </div>
       </div>
 
-      <Section title="Scene">
-        <Row label="Name">
+      <Section title={t.inspector_section_scene}>
+        <Row label={t.inspector_name}>
           <TextField value={scene.name} onChange={(v) => renameScene(scene.id, v)} />
         </Row>
-        <Row label="Background">
+        <Row label={t.inspector_background}>
           <ColorSwatch
             value={scene.background ?? '#ffffff'}
             onChange={(v) => updateBg(scene.id, v)}
           />
         </Row>
-        <Row label="Start">
+        <Row label={t.inspector_start}>
           <button
             type="button"
             onClick={() => setStartScene(scene.id)}
@@ -849,24 +854,23 @@ function SceneInspector() {
                 : 'bg-[var(--color-panel-2)] text-[var(--color-text)] hover:bg-[var(--color-panel-3)]'
             }`}
           >
-            {isStart ? '★ Start scene' : 'Set as start'}
+            {isStart ? t.inspector_isStart : t.inspector_setAsStart}
           </button>
         </Row>
       </Section>
 
-      <Section title="Notes">
+      <Section title={t.inspector_section_notes}>
         <textarea
           value={scene.notes ?? ''}
           onChange={(e) => updateNotes(scene.id, e.target.value)}
-          placeholder="Scene notes…"
+          placeholder={t.inspector_sceneNotes}
           className="h-20 w-full resize-none rounded-xl bg-[var(--color-panel-2)] px-3 py-2 text-[12px] text-[var(--color-text)] outline-none focus:bg-[var(--color-panel)] focus:ring-1 focus:ring-[var(--color-accent)]"
         />
       </Section>
 
       <div className="px-4 py-4 text-[11px] leading-snug text-[var(--color-text-dim)]">
-        Select an object to edit it. Drag from assets or use the toolbar above the canvas.
+        {t.inspector_selectHint}
       </div>
     </div>
   );
 }
-

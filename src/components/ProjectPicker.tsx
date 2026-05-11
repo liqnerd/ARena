@@ -6,11 +6,13 @@ import { createProject } from '@/lib/factory';
 import { createDemoProject } from '@/lib/demoProject';
 import { projectFromJson } from '@/lib/exportJson';
 import { useEditor } from '@/store/editor';
+import { useT } from '@/i18n';
 
 const VIEWER_HEIGHTS = [110, 150, 170, 190] as const;
 type ViewerHeight = typeof VIEWER_HEIGHTS[number];
 
 export function ProjectPicker({ onClose }: { onClose: () => void }) {
+  const { t, lang } = useT();
   const setProject = useEditor((s) => s.setProject);
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +65,10 @@ export function ProjectPicker({ onClose }: { onClose: () => void }) {
 
   async function handleDelete(e: React.MouseEvent, p: Project) {
     e.stopPropagation();
-    if (!confirm(`Delete "${p.name}"? Cannot be undone.`)) return;
+    const msg = lang === 'cs'
+      ? `Smazat "${p.name}"? Tuto akci nelze vrátit.`
+      : `Delete "${p.name}"? Cannot be undone.`;
+    if (!confirm(msg)) return;
     await deleteProject(p.id);
     setProjects((list) => list?.filter((x) => x.id !== p.id) ?? null);
   }
@@ -99,7 +104,7 @@ export function ProjectPicker({ onClose }: { onClose: () => void }) {
               ARena
             </span>
             <span className="text-[13px] text-[var(--color-text-dim)]">
-              — otevřít nebo vytvořit projekt
+              {t.picker_subtitle}
             </span>
           </div>
           <button
@@ -114,7 +119,7 @@ export function ProjectPicker({ onClose }: { onClose: () => void }) {
         {/* ── Viewer height ── */}
         <div className="px-5 pb-4">
           <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-text-dim)]">
-            Výška pozorovatele
+            {t.picker_viewerHeight}
           </div>
           <div
             className="flex gap-[3px] rounded-full p-[3px]"
@@ -164,10 +169,10 @@ export function ProjectPicker({ onClose }: { onClose: () => void }) {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[14px] font-semibold text-[var(--color-text-strong)]">
-                Nový projekt
+                {t.picker_newProject}
               </div>
               <div className="text-[11px] text-[var(--color-text-dim)]">
-                Prázdný 360° cylindr · 7741 × 2450 px
+                {t.picker_newProjectHint}
               </div>
             </div>
             <span className="text-[var(--color-text-dim)] opacity-40 group-hover:opacity-100 transition-opacity">
@@ -187,8 +192,8 @@ export function ProjectPicker({ onClose }: { onClose: () => void }) {
               <IcoPlay />
             </div>
             <div>
-              <div className="text-[12px] font-semibold text-[var(--color-text)]">Demo projekt</div>
-              <div className="text-[10px] text-[var(--color-text-dim)]">3 scény · hotspoty</div>
+              <div className="text-[12px] font-semibold text-[var(--color-text)]">{t.picker_demo}</div>
+              <div className="text-[10px] text-[var(--color-text-dim)]">{t.picker_demoHint}</div>
             </div>
           </button>
 
@@ -201,8 +206,8 @@ export function ProjectPicker({ onClose }: { onClose: () => void }) {
               <IcoUpload />
             </div>
             <div>
-              <div className="text-[12px] font-semibold text-[var(--color-text)]">Import .json</div>
-              <div className="text-[10px] text-[var(--color-text-dim)]">Obnovit projekt</div>
+              <div className="text-[12px] font-semibold text-[var(--color-text)]">{t.picker_import}</div>
+              <div className="text-[10px] text-[var(--color-text-dim)]">{t.picker_importHint}</div>
             </div>
           </button>
         </div>
@@ -223,7 +228,7 @@ export function ProjectPicker({ onClose }: { onClose: () => void }) {
         <div className="border-t border-[var(--color-border-soft)]">
           <div className="flex items-center gap-2 px-5 py-2.5">
             <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-text-dim)]">
-              Nedávné projekty
+              {t.picker_recent}
             </span>
           </div>
 
@@ -236,11 +241,11 @@ export function ProjectPicker({ onClose }: { onClose: () => void }) {
           <ul className="max-h-[200px] overflow-y-auto pb-1">
             {projects === null ? (
               <li className="px-5 py-3 text-[12px] text-[var(--color-text-dim)]">
-                Načítám…
+                {t.picker_loading}
               </li>
             ) : projects.length === 0 ? (
               <li className="px-5 py-4 text-[12px] text-[var(--color-text-dim)]">
-                Žádné uložené projekty.
+                {t.picker_noProjects}
               </li>
             ) : (
               projects.map((p) => (
@@ -258,7 +263,7 @@ export function ProjectPicker({ onClose }: { onClose: () => void }) {
                         {p.name}
                       </div>
                       <div className="text-[11px] text-[var(--color-text-dim)]">
-                        {p.scenes.length} scén{p.scenes.length === 1 ? 'a' : 'y'} · {p.assets.length} assetů · {formatTime(p.updatedAt)}
+                        {formatSceneCount(p.scenes.length, lang)} · {formatAssetCount(p.assets.length, lang)} · {formatTime(p.updatedAt, lang)}
                       </div>
                     </div>
                     <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
@@ -266,7 +271,7 @@ export function ProjectPicker({ onClose }: { onClose: () => void }) {
                         type="button"
                         onClick={(e) => handleDelete(e, p)}
                         className="flex h-6 w-6 items-center justify-center rounded-md text-[var(--color-text-dim)] hover:bg-rose-50 hover:text-rose-500"
-                        title="Smazat projekt"
+                        title={t.picker_delete}
                       >
                         <IcoTrash />
                       </button>
@@ -285,10 +290,24 @@ export function ProjectPicker({ onClose }: { onClose: () => void }) {
   );
 }
 
-function formatTime(iso?: string): string {
+function formatSceneCount(n: number, lang: 'cs' | 'en'): string {
+  if (lang === 'en') return `${n} scene${n === 1 ? '' : 's'}`;
+  if (n === 1) return `${n} scéna`;
+  if (n < 5) return `${n} scény`;
+  return `${n} scén`;
+}
+
+function formatAssetCount(n: number, lang: 'cs' | 'en'): string {
+  if (lang === 'en') return `${n} asset${n === 1 ? '' : 's'}`;
+  if (n === 1) return `${n} asset`;
+  if (n < 5) return `${n} assety`;
+  return `${n} assetů`;
+}
+
+function formatTime(iso: string | undefined, lang: 'cs' | 'en'): string {
   if (!iso) return '—';
   try {
-    return new Date(iso).toLocaleDateString('cs-CZ', {
+    return new Date(iso).toLocaleDateString(lang === 'cs' ? 'cs-CZ' : 'en-US', {
       day: '2-digit', month: '2-digit', year: 'numeric',
     });
   } catch {

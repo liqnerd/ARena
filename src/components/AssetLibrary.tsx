@@ -7,10 +7,12 @@ import {
 import { setCanvasDragData } from '@/components/canvas/Canvas2D';
 import type { Asset, AssetType } from '@/types/project';
 import { deleteAssetBlob } from '@/lib/persistence';
+import { useT } from '@/i18n';
 
 type Filter = 'all' | AssetType;
 
 export function AssetLibrary() {
+  const { t, lang } = useT();
   const assets = useEditor((s) => s.project.assets);
   const addAsset = useEditor((s) => s.addAsset);
   const removeAsset = useEditor((s) => s.removeAsset);
@@ -35,19 +37,29 @@ export function AssetLibrary() {
     try {
       const newAssets = await importAssetFiles(files);
       if (newAssets.length === 0) {
+        const n = files.length;
         setError(
-          `${files.length} file${files.length > 1 ? 's' : ''} skipped (unsupported type)`,
+          lang === 'cs'
+            ? `${n} soubor${n === 1 ? '' : n < 5 ? 'y' : 'ů'} přeskočeno (nepodporovaný typ)`
+            : `${n} file${n > 1 ? 's' : ''} skipped (unsupported type)`,
         );
       } else {
         newAssets.forEach((a) => addAsset(a));
       }
     } catch (err) {
       console.error('[arena] import failed', err);
-      setError(err instanceof Error ? err.message : 'Import failed');
+      setError(err instanceof Error ? err.message : lang === 'cs' ? 'Import selhal' : 'Import failed');
     } finally {
       setBusy(false);
     }
   }
+
+  const FILTERS: [Filter, string][] = [
+    ['all', t.assets_all],
+    ['image', t.assets_image],
+    ['svg', 'SVG'],
+    ['video', 'Video'],
+  ];
 
   return (
     <div
@@ -71,11 +83,11 @@ export function AssetLibrary() {
     >
       <div className="flex h-11 items-center justify-between border-b border-[var(--color-border)] px-4">
         <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-text-dim)]">
-          Assets
+          {t.assets_title}
         </span>
         <button
           type="button"
-          title="Upload assets"
+          title={t.assets_upload}
           onClick={() => inputRef.current?.click()}
           className="flex h-7 w-7 items-center justify-center rounded-full text-[var(--color-text-dim)] transition hover:bg-[var(--color-panel-2)] hover:text-[var(--color-accent)]"
         >
@@ -98,21 +110,14 @@ export function AssetLibrary() {
       <div className="px-3 pt-3">
         <input
           type="text"
-          placeholder="Search assets…"
+          placeholder={t.assets_search}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full rounded-full border border-[var(--color-border)] bg-[var(--color-panel-2)] px-3 py-1.5 text-[12px] text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-dim)] focus:border-[var(--color-accent)] focus:bg-[var(--color-panel)]"
         />
       </div>
       <div className="flex gap-1 px-3 pt-2 pb-2 text-[11px]">
-        {(
-          [
-            ['all', 'All'],
-            ['image', 'Image'],
-            ['svg', 'SVG'],
-            ['video', 'Video'],
-          ] as const
-        ).map(([k, label]) => (
+        {FILTERS.map(([k, label]) => (
           <button
             type="button"
             key={k}
@@ -130,18 +135,18 @@ export function AssetLibrary() {
 
       <div className="grid flex-1 grid-cols-2 gap-2 overflow-y-auto p-3">
         {filtered.length === 0 ? (
-          <EmptyState busy={busy} />
+          <EmptyState busy={busy} t={t} />
         ) : (
           filtered.map((a) => (
             <AssetTile
               key={a.id}
               asset={a}
+              removeLabel={t.assets_remove}
               onRemove={() => {
-                if (
-                  confirm(
-                    `Remove "${a.name}" from the library? Existing scene objects referencing it will show a placeholder.`,
-                  )
-                ) {
+                const msg = lang === 'cs'
+                  ? `Odebrat "${a.name}" z knihovny? Stávající objekty scény, které na něj odkazují, zobrazí zástupný symbol.`
+                  : `Remove "${a.name}" from the library? Existing scene objects referencing it will show a placeholder.`;
+                if (confirm(msg)) {
                   removeAsset(a.id);
                   deleteAssetBlob(a.id).catch(() => {});
                 }
@@ -155,10 +160,10 @@ export function AssetLibrary() {
         {error ? (
           <span className="text-rose-500">⚠ {error}</span>
         ) : busy ? (
-          <span className="text-[var(--color-text-dim)]">Importing…</span>
+          <span className="text-[var(--color-text-dim)]">{t.assets_importing}</span>
         ) : (
           <span className="text-[var(--color-text-dim)]">
-            Click + or drop files. Drag tile to canvas.
+            {t.assets_hint}
           </span>
         )}
       </div>
@@ -166,15 +171,14 @@ export function AssetLibrary() {
   );
 }
 
-function EmptyState({ busy }: { busy: boolean }) {
+function EmptyState({ busy, t }: { busy: boolean; t: ReturnType<typeof useT>['t'] }) {
   return (
     <div className="col-span-2 flex h-full flex-col items-center justify-center gap-2 px-2 py-8 text-center text-[11px] text-[var(--color-text-dim)]">
       <div className="uppercase tracking-wider">
-        {busy ? 'importing…' : 'no assets'}
+        {busy ? t.assets_importing.toLowerCase() : t.assets_noAssets}
       </div>
       <div className="leading-snug">
-        Click <span className="text-[var(--color-accent)]">+</span> or drop
-        PNG / JPG / SVG / MP4.
+        {t.assets_dropHint}
       </div>
     </div>
   );
@@ -183,9 +187,11 @@ function EmptyState({ busy }: { busy: boolean }) {
 function AssetTile({
   asset,
   onRemove,
+  removeLabel,
 }: {
   asset: Asset;
   onRemove: () => void;
+  removeLabel: string;
 }) {
   return (
     <div
@@ -218,7 +224,7 @@ function AssetTile({
           onRemove();
         }}
         className="absolute top-1 right-1 hidden h-5 w-5 items-center justify-center rounded-full bg-white/90 text-[10px] text-[var(--color-text)] shadow-sm hover:bg-rose-500 hover:text-white group-hover:flex"
-        title="Remove from library"
+        title={removeLabel}
       >
         ×
       </button>

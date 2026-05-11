@@ -37,7 +37,12 @@
       "PowerShell(Get-Process *)",
       "PowerShell(netstat *)",
       "PowerShell(Stop-Process *)",
-      "Bash(python *)"
+      "Bash(python *)",
+      "Bash(git -C E:/ARena status)",
+      "Bash(git commit -m ' *)",
+      "Bash(git check-ignore *)",
+      "Bash(git remote *)",
+      "Bash(start *)"
     ]
   }
 }

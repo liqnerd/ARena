@@ -1,6 +1,7 @@
 import { useEditor } from '@/store/editor';
 import type { PersonHeightCm } from '@/store/editor';
 import { ExportMenu } from '@/components/ExportMenu';
+import { useT } from '@/i18n';
 
 const PERSON_HEIGHTS: PersonHeightCm[] = [110, 150, 170, 190];
 
@@ -11,6 +12,7 @@ export function TopBar({
   onOpenPicker: () => void;
   onOpenHelp: () => void;
 }) {
+  const { t, lang, setLang } = useT();
   const projectName = useEditor((s) => s.project.name);
   const renameProject = useEditor((s) => s.renameProject);
   const saveState = useEditor((s) => s.saveState);
@@ -42,7 +44,7 @@ export function TopBar({
         <button
           type="button"
           onClick={onOpenPicker}
-          title="Open project picker"
+          title={t.topbar_openPicker}
           className="flex h-9 w-9 items-center justify-center rounded-lg transition hover:bg-[var(--color-panel-2)]"
         >
           <img src={`${import.meta.env.BASE_URL}a.svg`} alt="ARena" className="h-[18px] w-[17px]" />
@@ -51,7 +53,7 @@ export function TopBar({
           value={projectName}
           onChange={(e) => renameProject(e.target.value)}
           className="bg-transparent text-[13px] font-medium text-[var(--color-accent)] outline-none placeholder:text-[var(--color-text-dim)] focus:text-[var(--color-accent-hover)]"
-          placeholder="Untitled project"
+          placeholder={t.topbar_untitled}
           style={{ minWidth: '160px' }}
         />
       </div>
@@ -68,13 +70,13 @@ export function TopBar({
         </PillGroup>
         <div className="mx-1 h-5 w-px bg-[var(--color-border)]" />
         <div className="flex items-center gap-0.5 rounded-full bg-[var(--color-panel-2)] p-1">
-          <ViewToggle active={showGrid} onClick={toggleGrid} title="Grid">
+          <ViewToggle active={showGrid} onClick={toggleGrid} title={t.topbar_grid}>
             <IconGrid />
           </ViewToggle>
-          <ViewToggle active={showSegments} onClick={toggleSegments} title="Segments">
+          <ViewToggle active={showSegments} onClick={toggleSegments} title={t.topbar_segments}>
             <IconSegments />
           </ViewToggle>
-          <ViewToggle active={showSafeZone} onClick={toggleSafeZone} title="Safe zone">
+          <ViewToggle active={showSafeZone} onClick={toggleSafeZone} title={t.topbar_safeZone}>
             <IconSafeZone />
           </ViewToggle>
         </div>
@@ -96,14 +98,16 @@ export function TopBar({
         )}
       </div>
 
-      {/* RIGHT: status, help, preview, export */}
+      {/* RIGHT: lang toggle, status, help, preview, export */}
       <div className="flex items-center gap-2">
-        <SaveBadge state={saveState} />
+        <LangToggle lang={lang} setLang={setLang} />
+        <div className="h-5 w-px bg-[var(--color-border)]" />
+        <SaveBadge state={saveState} t={t} />
         <button
           type="button"
           onClick={onOpenHelp}
           className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-dim)] transition hover:bg-[var(--color-panel-2)] hover:text-[var(--color-text-strong)]"
-          title="Keyboard shortcuts (?)"
+          title={t.topbar_shortcuts}
         >
           ?
         </button>
@@ -120,11 +124,42 @@ export function TopBar({
           <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
             <path d="M2 1.5v8l7-4-7-4z" />
           </svg>
-          {previewMode ? 'Exit preview' : 'Preview'}
+          {previewMode ? t.topbar_exitPreview : t.topbar_preview}
         </button>
         <ExportMenu />
       </div>
     </header>
+  );
+}
+
+function LangToggle({ lang, setLang }: { lang: 'cs' | 'en'; setLang: (l: 'cs' | 'en') => void }) {
+  return (
+    <div className="flex items-center gap-0.5 rounded-full bg-[var(--color-panel-2)] p-1">
+      <button
+        type="button"
+        onClick={() => setLang('cs')}
+        className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all duration-150 ${
+          lang === 'cs'
+            ? 'bg-white text-[#E6007E]'
+            : 'text-[var(--color-text-dim)] hover:text-[var(--color-text-strong)]'
+        }`}
+        style={lang === 'cs' ? { boxShadow: '0 1px 4px rgba(0,0,0,0.10)' } : undefined}
+      >
+        CZ
+      </button>
+      <button
+        type="button"
+        onClick={() => setLang('en')}
+        className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all duration-150 ${
+          lang === 'en'
+            ? 'bg-white text-[#E6007E]'
+            : 'text-[var(--color-text-dim)] hover:text-[var(--color-text-strong)]'
+        }`}
+        style={lang === 'en' ? { boxShadow: '0 1px 4px rgba(0,0,0,0.10)' } : undefined}
+      >
+        EN
+      </button>
+    </div>
   );
 }
 
@@ -197,9 +232,9 @@ function ViewToggle({
   );
 }
 
-function SaveBadge({ state }: { state: 'saved' | 'saving' | 'unsaved' }) {
+function SaveBadge({ state, t }: { state: 'saved' | 'saving' | 'unsaved'; t: ReturnType<typeof useT>['t'] }) {
   const label =
-    state === 'saved' ? 'Saved' : state === 'saving' ? 'Saving…' : 'Unsaved';
+    state === 'saved' ? t.topbar_saved : state === 'saving' ? t.topbar_saving : t.topbar_unsaved;
   const dot =
     state === 'saved'
       ? 'bg-emerald-500'
