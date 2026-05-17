@@ -919,7 +919,7 @@ function drawHRuler(
   sceneWidth: number,
 ) {
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = '#f3f4f6';
+  ctx.fillStyle = '#313237';
   ctx.fillRect(0, 0, w, h);
 
   const iv = pickRulerInterval(zoom);
@@ -935,7 +935,7 @@ function drawHRuler(
     const sx = Math.round(wx * zoom + panX);
     if (sx < -1 || sx > w + 1) continue;
 
-    ctx.fillStyle = '#c4c8d0';
+    ctx.fillStyle = 'rgba(255,255,255,0.20)';
     ctx.fillRect(sx, h - 6, 1, 6);
 
     const halfSx = Math.round((wx + iv / 2) * zoom + panX);
@@ -944,7 +944,7 @@ function drawHRuler(
     }
 
     if (sx + 2 < w) {
-      ctx.fillStyle = '#8a8e98';
+      ctx.fillStyle = '#7a7d87';
       ctx.fillText(String(Math.round(wx)), sx + 2, 2);
     }
   }
@@ -957,7 +957,7 @@ function drawHRuler(
   if (x1 >= 0 && x1 <= w) ctx.fillRect(x1, 0, 1, h);
 
   // border
-  ctx.fillStyle = '#e5e7eb';
+  ctx.fillStyle = '#3f4047';
   ctx.fillRect(0, h - 1, w, 1);
 }
 
@@ -970,7 +970,7 @@ function drawVRuler(
   sceneHeight: number,
 ) {
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = '#f3f4f6';
+  ctx.fillStyle = '#313237';
   ctx.fillRect(0, 0, w, h);
 
   const iv = pickRulerInterval(zoom);
@@ -984,7 +984,7 @@ function drawVRuler(
     const sy = Math.round(wy * zoom + panY);
     if (sy < -1 || sy > h + 1) continue;
 
-    ctx.fillStyle = '#c4c8d0';
+    ctx.fillStyle = 'rgba(255,255,255,0.20)';
     ctx.fillRect(w - 6, sy, 6, 1);
 
     const halfSy = Math.round((wy + iv / 2) * zoom + panY);
@@ -994,7 +994,7 @@ function drawVRuler(
 
     if (sy - 2 > 0) {
       ctx.save();
-      ctx.fillStyle = '#8a8e98';
+      ctx.fillStyle = '#7a7d87';
       ctx.translate(w - 8, sy - 2);
       ctx.rotate(-Math.PI / 2);
       ctx.textBaseline = 'top';
@@ -1012,7 +1012,7 @@ function drawVRuler(
   if (y1 >= 0 && y1 <= h) ctx.fillRect(0, y1, w, 1);
 
   // border
-  ctx.fillStyle = '#e5e7eb';
+  ctx.fillStyle = '#3f4047';
   ctx.fillRect(w - 1, 0, 1, h);
 }
 
