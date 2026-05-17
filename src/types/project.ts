@@ -1,8 +1,8 @@
 export const PROJECT_SCHEMA_VERSION = '1.0.0';
 
 export const DEFAULT_TEMPLATE = {
-  width: 7741,
-  height: 2450,
+  width: 6825,
+  height: 2160,
   segments: 6,
   mode: 'cylinder-360' as const,
   projectionHeightCm: 250,

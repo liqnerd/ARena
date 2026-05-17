@@ -695,12 +695,12 @@ function GridLayer({
   return <Group listening={false}>{lines}</Group>;
 }
 
-// Zone boundaries (heights from floor in px, canvas height = 2450)
+// Zone boundaries (heights from floor in px, canvas height = 2160)
 const ZONE_DEFS: Record<PersonHeightCm, { noTextBottom: number; interactionTop: number; contentTop: number; noTextTop: number }> = {
-  110: { noTextBottom: 260,  interactionTop: 760,  contentTop: 1560, noTextTop: 2450 },
-  150: { noTextBottom: 660,  interactionTop: 1160, contentTop: 1960, noTextTop: 2450 },
-  170: { noTextBottom: 850,  interactionTop: 1350, contentTop: 2160, noTextTop: 2450 },
-  190: { noTextBottom: 1060, interactionTop: 1560, contentTop: 2360, noTextTop: 2450 },
+  110: { noTextBottom: 229,  interactionTop: 670,  contentTop: 1375, noTextTop: 2160 },
+  150: { noTextBottom: 582,  interactionTop: 1023, contentTop: 1728, noTextTop: 2160 },
+  170: { noTextBottom: 749,  interactionTop: 1190, contentTop: 1904, noTextTop: 2160 },
+  190: { noTextBottom: 935,  interactionTop: 1375, contentTop: 2081, noTextTop: 2160 },
 };
 
 function SafeZoneLayer({
@@ -1141,8 +1141,8 @@ function buildToolObject(
   cy: number,
 ): Omit<SceneObject, 'id' | 'zIndex'> {
   if (tool === 'text') {
-    const w = 800;
-    const h = 140;
+    const w = 706;
+    const h = 123;
     return {
       type: 'text',
       name: 'Text',
@@ -1165,8 +1165,8 @@ function buildToolObject(
     };
   }
   if (tool === 'hotspot') {
-    const w = 600;
-    const h = 600;
+    const w = 529;
+    const h = 529;
     return {
       type: 'hotspot',
       name: 'Hotspot',
@@ -1191,8 +1191,8 @@ function buildToolObject(
       ],
     };
   }
-  const w = 500;
-  const h = 500;
+  const w = 441;
+  const h = 441;
   return {
     type: 'shape',
     name: tool === 'shape-ellipse' ? 'Ellipse' : 'Rectangle',

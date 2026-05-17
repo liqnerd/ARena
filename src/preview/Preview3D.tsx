@@ -32,7 +32,7 @@ export function Preview3D() {
   const [hoverId, setHoverId] = useState<string | null>(null);
 
   return (
-    <div className="relative flex h-full w-full flex-col bg-[#f7f7f9]">
+    <div className="relative flex h-full w-full flex-col bg-[var(--color-canvas)]">
       <div className="flex h-9 items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-panel)] px-3">
         <div className="flex items-center gap-2">
           <span className="rounded bg-[var(--color-accent)] px-2 py-0.5 text-[10px] font-semibold text-white">
@@ -79,7 +79,7 @@ export function Preview3D() {
           camera={{ position: [0, 0, 0], fov: 75, near: 0.01, far: 100 }}
           dpr={[1, 2]}
         >
-          <color attach="background" args={['#f7f7f9']} />
+          <color attach="background" args={['#222326']} />
           <ambientLight intensity={1.2} />
           <Suspense fallback={null}>
             <Cylinder scene={liveScene} template={template} />

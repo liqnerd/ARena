@@ -140,7 +140,7 @@ function LangToggle({ lang, setLang }: { lang: 'cs' | 'en'; setLang: (l: 'cs' | 
         onClick={() => setLang('cs')}
         className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all duration-150 ${
           lang === 'cs'
-            ? 'bg-white text-[#E6007E]'
+            ? 'bg-[var(--color-panel-2)] text-[#E6007E]'
             : 'text-[var(--color-text-dim)] hover:text-[var(--color-text-strong)]'
         }`}
         style={lang === 'cs' ? { boxShadow: '0 1px 4px rgba(0,0,0,0.10)' } : undefined}
@@ -152,7 +152,7 @@ function LangToggle({ lang, setLang }: { lang: 'cs' | 'en'; setLang: (l: 'cs' | 
         onClick={() => setLang('en')}
         className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all duration-150 ${
           lang === 'en'
-            ? 'bg-white text-[#E6007E]'
+            ? 'bg-[var(--color-panel-2)] text-[#E6007E]'
             : 'text-[var(--color-text-dim)] hover:text-[var(--color-text-strong)]'
         }`}
         style={lang === 'en' ? { boxShadow: '0 1px 4px rgba(0,0,0,0.10)' } : undefined}
@@ -186,7 +186,7 @@ function PillItem({
       onClick={onClick}
       className={`rounded-full px-3 py-1 text-[12px] font-semibold transition-all duration-150 ${
         active
-          ? 'bg-white text-[#E6007E]'
+          ? 'bg-[var(--color-panel-2)] text-[#E6007E]'
           : 'text-[var(--color-text)] hover:text-[var(--color-text-strong)]'
       }`}
       style={
@@ -218,7 +218,7 @@ function ViewToggle({
       title={title}
       className={`flex h-7 w-7 items-center justify-center rounded-full transition-all duration-150 ${
         active
-          ? 'bg-white text-[#E6007E]'
+          ? 'bg-[var(--color-panel-2)] text-[#E6007E]'
           : 'text-[var(--color-text-dim)] hover:text-[var(--color-text-strong)]'
       }`}
       style={

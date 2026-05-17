@@ -80,8 +80,8 @@ export function Toolbar() {
 
 function buildToolObject(tool: Tool, cx: number, cy: number) {
   if (tool === 'text') {
-    const w = 800;
-    const h = 140;
+    const w = 706;
+    const h = 123;
     return {
       type: 'text' as const,
       name: 'Text',
@@ -104,8 +104,8 @@ function buildToolObject(tool: Tool, cx: number, cy: number) {
     };
   }
   if (tool === 'hotspot') {
-    const w = 600;
-    const h = 600;
+    const w = 529;
+    const h = 529;
     return {
       type: 'hotspot' as const,
       name: 'Hotspot',
@@ -120,8 +120,8 @@ function buildToolObject(tool: Tool, cx: number, cy: number) {
       props: { label: 'Tap', invisible: false },
     };
   }
-  const w = 500;
-  const h = 500;
+  const w = 441;
+  const h = 441;
   return {
     type: 'shape' as const,
     name: tool === 'shape-ellipse' ? 'Ellipse' : 'Rectangle',

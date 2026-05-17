@@ -136,10 +136,10 @@ export function ProjectPicker({ onClose }: { onClose: () => void }) {
                   style={
                     active
                       ? {
-                          background: '#ffffff',
+                          background: 'var(--color-panel-2)',
                           color: 'var(--color-accent)',
                           boxShadow:
-                            '0 1px 4px rgba(0,0,0,0.10), 0 0 0 1px rgba(230,0,126,0.10)',
+                            '0 1px 4px rgba(0,0,0,0.25), 0 0 0 1px rgba(230,0,126,0.20)',
                         }
                       : { color: 'var(--color-text-dim)' }
                   }

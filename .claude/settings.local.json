@@ -42,7 +42,9 @@
       "Bash(git commit -m ' *)",
       "Bash(git check-ignore *)",
       "Bash(git remote *)",
-      "Bash(start *)"
+      "Bash(start *)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx|jsx|js|css|scss\\)$\")",
+      "Bash(xargs grep *)"
     ]
   }
 }

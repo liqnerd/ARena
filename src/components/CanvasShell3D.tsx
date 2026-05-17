@@ -10,7 +10,7 @@ export function CanvasShell3D({ scene }: { scene: Scene | undefined }) {
   return (
     <div className="relative h-full w-full bg-[var(--color-canvas)]">
       <Canvas camera={{ position: [0, 1.4, 6.5], fov: 40 }}>
-        <color attach="background" args={['#f7f7f9']} />
+        <color attach="background" args={['#222326']} />
         <ambientLight intensity={1.05} />
         <Suspense fallback={null}>
           <Cylinder scene={scene} />
@@ -89,7 +89,7 @@ function useLiveSceneTexture(
     c.height = 16;
     const ctx = c.getContext('2d');
     if (ctx) {
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = '#222326';
       ctx.fillRect(0, 0, 16, 16);
     }
     const tex = new THREE.CanvasTexture(c);
