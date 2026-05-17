@@ -476,8 +476,6 @@ export function Canvas2D() {
       className="relative h-full w-full overflow-hidden"
       style={{ cursor: spacePan ? (panStateRef.current?.active ? 'grabbing' : 'grab') : 'default' }}
     >
-      <DotPattern />
-
       {/* Corner block */}
       <div
         className="pointer-events-none absolute left-0 top-0 z-20 border-b border-r border-[var(--color-border)]"
@@ -1093,22 +1091,6 @@ function VerticalRuler({
 }
 
 // ───────────────────────────────────────────────────────────────────────────
-
-function DotPattern() {
-  return (
-    <svg
-      className="absolute inset-0 h-full w-full opacity-[0.06]"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <defs>
-        <pattern id="dot" width="24" height="24" patternUnits="userSpaceOnUse">
-          <circle cx="1" cy="1" r="1" fill="currentColor" />
-        </pattern>
-      </defs>
-      <rect width="100%" height="100%" fill="url(#dot)" />
-    </svg>
-  );
-}
 
 function buildAssetObject(
   asset: Asset,

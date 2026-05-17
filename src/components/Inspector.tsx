@@ -480,7 +480,7 @@ function ObjectInspector({ obj }: { obj: SceneObject }) {
         <button
           type="button"
           onClick={() => deleteObject(obj.id)}
-          className="flex-1 rounded-full bg-rose-50 px-3 py-1.5 text-[12px] font-medium text-rose-600 hover:bg-rose-100"
+          className="flex-1 rounded-full bg-rose-950/60 px-3 py-1.5 text-[12px] font-medium text-rose-400 hover:bg-rose-900/70"
         >
           {t.inspector_delete}
         </button>
