@@ -839,7 +839,7 @@ function SceneInspector() {
         </Row>
         <Row label={t.inspector_background}>
           <ColorSwatch
-            value={scene.background ?? '#ffffff'}
+            value={scene.background ?? '#1a1b1e'}
             onChange={(v) => updateBg(scene.id, v)}
           />
         </Row>

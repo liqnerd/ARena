@@ -549,7 +549,7 @@ export function Canvas2D() {
                 y={0}
                 width={template.width}
                 height={template.height}
-                fill={scene?.background ?? '#ffffff'}
+                fill={scene?.background ?? '#1a1b1e'}
                 shadowColor="rgba(0,0,0,0.45)"
                 shadowBlur={20}
                 shadowOpacity={1}

@@ -53,7 +53,7 @@ export async function renderSceneToCanvas(
   const ctx = canvas.getContext('2d');
   if (!ctx) return canvas;
 
-  ctx.fillStyle = scene?.background ?? '#ffffff';
+  ctx.fillStyle = scene?.background ?? '#1a1b1e';
   ctx.fillRect(0, 0, targetWidth, targetHeight);
 
   if (!scene) {

@@ -34,7 +34,7 @@ export function SceneStrip({ onCollapse }: { onCollapse: () => void }) {
               }`}
               onClick={() => setCurrentScene(scene.id)}
               style={{
-                background: scene.background ?? '#ffffff',
+                background: scene.background ?? '#1a1b1e',
                 ...(active
                   ? { boxShadow: '0 0 0 3px rgba(230,0,126,0.15), 0 2px 8px rgba(230,0,126,0.12)' }
                   : {}),

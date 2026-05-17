@@ -11,7 +11,7 @@ export const newId = (prefix = '') => `${prefix}${nanoid(10)}`;
 export const createScene = (name = 'Scene 1'): Scene => ({
   id: newId('sc_'),
   name,
-  background: '#ffffff',
+  background: '#1a1b1e',
   objects: [],
 });
 
